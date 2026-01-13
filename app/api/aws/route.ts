@@ -3,7 +3,7 @@ import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3";
 
 export const runtime = "nodejs"; // ensure Node runtime
 
-const s3 = new S3Client({ region: process.env.AWS_REGION });
+const s3 = new S3Client({ region: process.env.REGION });
 
 async function streamToString(stream: any): Promise<string> {
   // AWS SDK v3 in Node provides transformToString on Body in many environments
