@@ -1,2 +1,2 @@
 # MOFinder
-Application used by Zheng Lab at WashU
+Comprehensive list of Metal-organic frameworks (MOF) and their synthesis procedure.
