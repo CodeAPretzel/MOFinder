@@ -4,7 +4,7 @@ import { FILTER_DEFS } from "@/lib/utils";
 
 export const runtime = "nodejs";
 
-const s3 = new S3Client({ region: process.env.REGION });
+const s3 = new S3Client({ region: process.env.AWS_REGION });
 
 // cache TTL (time to live)
 const CACHE_TTL_MS = 5 * 60 * 1000;
@@ -74,12 +74,8 @@ async function loadAllMofs(): Promise<any[]> {
   const now = Date.now();
   if (cachedData && now - cachedAt < CACHE_TTL_MS) return cachedData;
 
-  const Bucket = process.env.MOF_BUCKET!;
-  const Key = process.env.MOF_KEY!;
-
-  console.log("MOF_BUCKET raw:", JSON.stringify(process.env.MOF_BUCKET));
-  console.log("MOF_KEY raw:", JSON.stringify(process.env.MOF_KEY));
-  console.log("AWS_REGION raw:", JSON.stringify(process.env.AWS_REGION));
+  const Bucket = process.env.NEXT_PUBLIC_MOF_BUCKET!;
+  const Key = process.env.NEXT_PUBLIC_MOF_KEY!;
 
   const obj = await s3.send(new GetObjectCommand({ Bucket, Key }));
   const jsonText = await streamToString(obj.Body);
