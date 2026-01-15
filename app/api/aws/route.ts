@@ -77,6 +77,10 @@ async function loadAllMofs(): Promise<any[]> {
   const Bucket = process.env.MOF_BUCKET!;
   const Key = process.env.MOF_KEY!;
 
+  console.log("MOF_BUCKET raw:", JSON.stringify(process.env.MOF_BUCKET));
+  console.log("MOF_KEY raw:", JSON.stringify(process.env.MOF_KEY));
+  console.log("AWS_REGION raw:", JSON.stringify(process.env.AWS_REGION));
+
   const obj = await s3.send(new GetObjectCommand({ Bucket, Key }));
   const jsonText = await streamToString(obj.Body);
   const parsed = JSON.parse(jsonText);
