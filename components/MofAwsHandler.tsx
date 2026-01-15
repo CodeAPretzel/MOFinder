@@ -1,7 +1,9 @@
 import { FILTER_DEFS } from "@/lib/utils";
 
-export async function MofAwsHandler(filters: FilterState, page = 1, pageSize = 9) {
+export async function MofAwsHandler(filters: FilterState, page: number, pageSize = 9) {
   const params = new URLSearchParams();
+  params.set("page", String(page))
+  params.set("pageSize", String(pageSize))
 
   for (const [key, def] of Object.entries(FILTER_DEFS)) {
     const value = (filters as any)[key];
@@ -18,5 +20,10 @@ export async function MofAwsHandler(filters: FilterState, page = 1, pageSize = 9
     throw new Error(`Failed to fetch MOFs (${res.status})`);
   }
 
-  return res.json() as Promise<{ total: number; page: number; pageSize: number; data: MofEntry[] }>;
+  return res.json() as Promise<{ 
+    total: number;
+    page: number;
+    pageSize: number;
+    data: MofEntry[]
+  }>;
 }

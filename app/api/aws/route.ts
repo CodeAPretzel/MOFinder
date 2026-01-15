@@ -74,8 +74,8 @@ async function loadAllMofs(): Promise<any[]> {
   const now = Date.now();
   if (cachedData && now - cachedAt < CACHE_TTL_MS) return cachedData;
 
-  const Bucket = process.env.NEXT_PUBLIC_MOF_BUCKET!;
-  const Key = process.env.NEXT_PUBLIC_MOF_KEY!;
+  const Bucket = process.env.MOF_BUCKET!;
+  const Key = process.env.MOF_KEY!;
 
   const obj = await s3.send(new GetObjectCommand({ Bucket, Key }));
   const jsonText = await streamToString(obj.Body);
