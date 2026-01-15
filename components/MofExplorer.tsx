@@ -1,30 +1,42 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Search, Beaker, LineChart, Sparkles, FlaskConical } from 'lucide-react';
-import { MOF_DATA } from '@/constants';
-import { fetchMofData } from './MofAwsHandler';
+import { MofAwsHandler } from '@/components/MofAwsHandler';
 import Header from '@/components/Header';
+import LoadingSpinner from '@/components/LoadingSpinner';
+import ErrorPanel from '@/components/ErrorPanel';
 import FilterSidebar from '@/components/FilterSidebar';
 import DetailModal from '@/components/DetailModal';
 import Theme from '@/components/Theme';
-import FilteredData from '@/components/FilteredData';
 import MofPagination from './MofPagination';
 
 const MofExplorer = () => {
   const { isDarkMode, toggleTheme } = Theme();
   const [selectedMof, setSelectedMof] = useState<MofEntry | null>(null);
 
-  const [mofData, setMofData] = useState<MofEntry[]>(MOF_DATA);
+  const [mofData, setMofData] = useState<MofEntry[]>([]);
+  const [totalCount, setTotalCount] = useState<number>(0);
+  const [page, setPage] = useState<number>(1);
+  const pageSize = 9;
+
   const [dataLoading, setDataLoading] = useState(false);
   const [dataError, setDataError] = useState<string | null>(null);
+
+  console.log("dataLoading: ", dataLoading)
+  console.log("dataError: ", dataError)
+
+  const [retryKey, setRetryKey] = useState(0);
+  const retryFetch = () => {
+    setRetryKey((k) => k + 1);
+  }
 
   const initialFilters = () => ({
     searchQuery: '',
     minSurfaceArea: 0,
     minPoreDiameter: 0,
-    maxTemperature: 300,
-    maxTime: 100,
+    maxTemperature: 0,
+    maxTime: 0,
     minTgaTemp: 0,
     waterStable: false,
     airStable: false,
@@ -33,25 +45,40 @@ const MofExplorer = () => {
   });
 
   const [filters, setFilters] = useState<FilterState>(initialFilters);
-  const filteredData = FilteredData(mofData, filters);
+  const filtersKey = JSON.stringify(filters)
+  const pageItems = mofData;
 
+  // Fetch MOF data when filters or page change
   useEffect(() => {
     let cancelled = false;
+
     (async () => {
       try {
         setDataLoading(true);
-        const data = await fetchMofData();
-        if (!cancelled) setMofData(data);
+        setDataError(null);
+
+        const resp = await MofAwsHandler(filters, page, pageSize);
+        if (!cancelled) {
+          setMofData(resp.data);
+          setTotalCount(resp.total);
+        }
       } catch (e: any) {
-        if (!cancelled) setDataError(e?.message ?? "Failed to load MOF dataset");
+        if (!cancelled) {
+          setDataError(e?.message ?? "Failed to load MOF dataset");
+        }
       } finally {
-        if (!cancelled) setDataLoading(false);
+        if (!cancelled) {
+          setDataLoading(false);
+        }
       }
     })();
+
+    setPage(1)
+
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [filtersKey, page, retryKey]);
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans transition-colors duration-200">
@@ -120,7 +147,7 @@ const MofExplorer = () => {
           <FilterSidebar
             filters={filters}
             setFilters={setFilters}
-            resultsCount={filteredData.length}
+            resultsCount={totalCount}
           />
 
           <div className="flex-1">
@@ -136,27 +163,36 @@ const MofExplorer = () => {
               </div>
             </div>
 
-            {filteredData.length > 0 ? (
+            {/* Loading/Error First then Clear Filters if no Results */}
+            {dataLoading ? (
+              <LoadingSpinner />
+            ) : dataError ? (
+              <ErrorPanel message={dataError} onRetry={retryFetch} />
+            ) : pageItems.length > 0 ? (
               <MofPagination
-                data={filteredData}
+                data={pageItems}
+                total={totalCount}
+                page={page}
+                pageSize={pageSize}
+                onPageChange={setPage}
                 onCardClick={setSelectedMof}
               />
-            ) : (
-              <div className="flex flex-col items-center justify-center py-20 bg-white dark:bg-slate-900 rounded-2xl border border-dashed border-slate-300 dark:border-slate-700">
-                <div className="p-4 bg-slate-100 dark:bg-slate-800 rounded-full text-slate-400 mb-4">
-                  <Beaker size={48} />
-                </div>
-                <h3 className="text-lg font-bold text-slate-700 dark:text-slate-300 mb-2">No MOFs Found</h3>
-                <p className="text-slate-500 dark:text-slate-400 text-center max-w-md">
-                  Try adjusting your filters (e.g., lowering surface area requirements) or checking different stability toggles.
-                </p>
-                <button
-                  onClick={() => setFilters(initialFilters())}
-                  className="mt-6 px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
-                >
-                  Clear Filters
-                </button>
-              </div>
+            ) : ( null
+              // <div className="flex flex-col items-center justify-center py-20 bg-white dark:bg-slate-900 rounded-2xl border border-dashed border-slate-300 dark:border-slate-700">
+              //   <div className="p-4 bg-slate-100 dark:bg-slate-800 rounded-full text-slate-400 mb-4">
+              //     <Beaker size={48} />
+              //   </div>
+              //   <h3 className="text-lg font-bold text-slate-700 dark:text-slate-300 mb-2">No MOFs Found</h3>
+              //   <p className="text-slate-500 dark:text-slate-400 text-center max-w-md">
+              //     Try adjusting your filters (e.g., lowering surface area requirements) or checking different stability toggles.
+              //   </p>
+              //   <button
+              //     onClick={() => setFilters(initialFilters())}
+              //     className="mt-6 px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
+              //   >
+              //     Clear Filters
+              //   </button>
+              // </div>
             )}
           </div>
         </div>

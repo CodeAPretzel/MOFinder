@@ -56,8 +56,11 @@ declare interface PaginationProps {
 
 declare interface MofPaginationProps {
   data: MofEntry[];
-  onCardClick: (mof: MofEntry) => void;
+  total: number;
+  page: number;
   pageSize?: number;
+  onPageChange: (page: number) => void;
+  onCardClick: (mof: MofEntry) => void;
 }
 
 declare interface DetailModalProps {

@@ -8,29 +8,26 @@ const buttonBaseClasses =
 
 const MofPagination: React.FC<MofPaginationProps> = ({
   data,
-  onCardClick,
+  total,
+  page,
+  onPageChange,
   pageSize = 9,
+  onCardClick,
 }) => {
-  const [currentPage, setCurrentPage] = useState(1);
   const [inputValue, setInputValue] = useState("1");
 
-  const totalPages = Math.max(1, Math.ceil(data.length / pageSize));
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
   useEffect(() => {
-    setCurrentPage(1);
-    setInputValue("1");
-  }, [data]);
-
-  useEffect(() => {
-    setInputValue(String(currentPage));
-  }, [currentPage]);
+    setInputValue(String(page));
+  }, [page]);
 
   const handlePrev = () => {
-    setCurrentPage((prev) => Math.max(1, prev - 1));
+    onPageChange(Math.max(1, page - 1));
   };
 
   const handleNext = () => {
-    setCurrentPage((prev) => Math.min(totalPages, prev + 1));
+    onPageChange(Math.min(totalPages, page + 1));
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -44,22 +41,19 @@ const MofPagination: React.FC<MofPaginationProps> = ({
     if (inputValue === "") return;
     const page = Number(inputValue);
     if (!Number.isNaN(page) && page >= 1 && page <= totalPages) {
-      setCurrentPage(page);
+      onPageChange(page);
     } else {
-      setInputValue(String(currentPage));
+      setInputValue(String(page));
     }
   };
-
-  const startIndex = (currentPage - 1) * pageSize;
-  const currentItems = data.slice(startIndex, startIndex + pageSize);
 
   return (
     <div className="flex flex-col gap-4">
       {/* Cards grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-        {currentItems.map((mof, index) => (
+        {data.map((mof, index) => (
           <MofCard
-            key={`${mof.mof_name}-${startIndex + index}`}
+            key={`${mof.mof_name}-${index}`}
             mof={mof}
             onClick={onCardClick}
           />
@@ -72,8 +66,8 @@ const MofPagination: React.FC<MofPaginationProps> = ({
           <div>
             <button
               onClick={handlePrev}
-              disabled={currentPage === 1}
-              className={`${buttonBaseClasses} ${currentPage === 1
+              disabled={page === 1}
+              className={`${buttonBaseClasses} ${page === 1
                 ? "text-gray-500"
                 : "text-blue-600 hover:text-blue-800 dark:text-blue-300 dark:hover:text-blue-200"
                 }`}
@@ -101,8 +95,8 @@ const MofPagination: React.FC<MofPaginationProps> = ({
 
           <button
             onClick={handleNext}
-            disabled={currentPage === totalPages}
-            className={`${buttonBaseClasses} ${currentPage === totalPages
+            disabled={page === totalPages}
+            className={`${buttonBaseClasses} ${page === totalPages
               ? "text-gray-500"
               : "text-blue-600 hover:text-blue-800 dark:text-blue-300 dark:hover:text-blue-200"
               }`}

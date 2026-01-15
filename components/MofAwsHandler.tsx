@@ -1,20 +1,22 @@
-const getMofJsonUrl = (): string => {
-  return "/api/aws"; // Switch to a local json file (in /public) for testing
-}
+import { FILTER_DEFS } from "@/lib/utils";
 
-export async function fetchMofData(url?: string): Promise<MofEntry[]> {
-  const finalUrl = url ?? getMofJsonUrl();
-  const res = await fetch(finalUrl);
+export async function MofAwsHandler(filters: FilterState, page = 1, pageSize = 9) {
+  const params = new URLSearchParams();
+
+  for (const [key, def] of Object.entries(FILTER_DEFS)) {
+    const value = (filters as any)[key];
+
+    // skip defaults / empties
+    if (value === "" || value === false || value === 0 || value == null) continue;
+
+    params.set(def.param, String(value));
+  }
+  
+  const res = await fetch(`/api/aws?${params.toString()}`);
 
   if (!res.ok) {
-    throw new Error(`Failed to fetch MOF JSON (${res.status}) from ${finalUrl}`);
+    throw new Error(`Failed to fetch MOFs (${res.status})`);
   }
 
-  const data = (await res.json()) as unknown;
-  if (!Array.isArray(data)) {
-    throw new Error("MOF JSON is not an array");
-  }
-  return data as MofEntry[];
+  return res.json() as Promise<{ total: number; page: number; pageSize: number; data: MofEntry[] }>;
 }
-
-export default getMofJsonUrl

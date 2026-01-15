@@ -14,8 +14,8 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({ filters, setFilters, resu
       searchQuery: filters.searchQuery, // Keep search query
       minSurfaceArea: 0,
       minPoreDiameter: 0,
-      maxTemperature: 300,
-      maxTime: 100,
+      maxTemperature: 0,
+      maxTime: 0,
       minTgaTemp: 0,
       waterStable: false,
       airStable: false,
