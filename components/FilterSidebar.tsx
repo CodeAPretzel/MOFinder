@@ -202,7 +202,9 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({ filters, setFilters, resu
                 className="w-full p-2.5 pl-3 pr-8 text-sm bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg appearance-none focus:ring-2 focus:ring-blue-500 focus:outline-none dark:text-slate-200"
             >
                 <option value="">All Metals</option>
-                {METALS.map(m => <option key={m} value={m}>{m}</option>)}
+                {METALS.map(m => 
+                    <option key={m} value={m}>{m}</option>
+                )}
             </select>
             <ChevronDown className="absolute right-3 top-3 text-slate-400 pointer-events-none" size={16} />
         </div>

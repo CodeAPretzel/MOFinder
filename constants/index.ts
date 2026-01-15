@@ -1,5 +1,3 @@
-import { any } from "zod";
-
 export const TOPOLOGIES = [
   'pcu',
   'fcu',
@@ -29,7 +27,7 @@ export const METALS = [
   'V',
 ];
 
-export const MOF_DATA: MofEntry[] = []
+// export const MofEntry = []
 
 export const MOCK_AI_METRICS: AiMetrics[] = [
   {

@@ -14,6 +14,7 @@ let cachedAt = 0;
 
 const parseNumber = (v: string | null): number | null => {
   if (v == null || v === "") return null;
+
   const n = Number(v);
   return Number.isFinite(n) ? n : null;
 }
@@ -21,6 +22,15 @@ const parseNumber = (v: string | null): number | null => {
 const parseBool = (v: string | null): boolean => {
   return v === "true" || v === "1" || v === "yes";
 }
+
+// Used for 'metal' filter in 'metal_1' JSON attribute
+const containsMetalSymbol = (precursor: string, symbol: string): boolean => {
+  if (!precursor || !symbol) return false;
+
+  const re = new RegExp(`(^|[^A-Za-z])${symbol}([^a-z]|$)`);
+  return re.test(precursor);
+};
+
 
 const matchesFilters = (m: MofEntry, p: URLSearchParams): boolean => {
   // special: search
@@ -46,7 +56,13 @@ const matchesFilters = (m: MofEntry, p: URLSearchParams): boolean => {
     }
 
     if (def.kind === "stringEq") {
-      if (raw && String((m as any)[def.field!]) !== raw) return false;
+      if (!raw) continue;
+
+      if (def.param === FILTER_DEFS.metal.param) {
+        if (!containsMetalSymbol(m.metal_1 ?? "", raw)) return false;
+      } else {
+        if (String((m as any)[def.field!]) !== raw) return false;
+      }
     }
 
     if (def.kind === "numberMin") {
