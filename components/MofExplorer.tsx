@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { Search, Beaker, LineChart, Sparkles, FlaskConical } from 'lucide-react';
+import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { MofAwsHandler } from '@/components/MofAwsHandler';
 import Header from '@/components/Header';
 import LoadingSpinner from '@/components/LoadingSpinner';
@@ -45,9 +46,29 @@ const MofExplorer = () => {
   const filtersKey = JSON.stringify(filters)
   const pageItems = mofData;
 
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const doi = searchParams.get("doi") ?? undefined;
+
+  // Clear pathname for doi helper
+  const clearDoiParam = () => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete("doi");
+    const qs = params.toString();
+    router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+  };
+
+
+  // Does filter change
   useEffect(() => {
     setPage(1);
   }, [filtersKey])
+
+  // Does doi exist
+  useEffect(() => {
+    if (doi) setPage(1);
+  }, [doi]);
 
   // Fetch MOF data when filters or page change
   useEffect(() => {
@@ -58,7 +79,11 @@ const MofExplorer = () => {
         setDataLoading(true);
         setDataError(null);
 
-        const resp = await MofAwsHandler(filters, page, pageSize);
+        // Apply doi handling
+        const effectivePageSize = doi ? 1 : pageSize;
+        const effectivePage = doi ? 1 : page;
+
+        const resp = await MofAwsHandler(filters, effectivePage, effectivePageSize, doi);
         if (!cancelled) {
           setMofData(resp.data);
           setTotalCount(resp.total);
@@ -78,6 +103,14 @@ const MofExplorer = () => {
       cancelled = true;
     };
   }, [filtersKey, page, retryKey]);
+
+  // Open doi mof card
+  useEffect(() => {
+    if (!doi) return;
+
+    // when doi exists, API should return exactly 1 match
+    if (mofData.length === 1) setSelectedMof(mofData[0]);
+  }, [doi, mofData]);
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans transition-colors duration-200">
@@ -210,7 +243,13 @@ const MofExplorer = () => {
       </footer>
 
       {selectedMof && (
-        <DetailModal mof={selectedMof} onClose={() => setSelectedMof(null)} />
+        <DetailModal 
+          mof={selectedMof} 
+          onClose={() => {
+            setSelectedMof(null)
+            clearDoiParam();
+          }} 
+        />
       )}
     </div>
   );

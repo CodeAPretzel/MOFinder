@@ -15,7 +15,7 @@ export const metadata: Metadata = {
   title: "MOFinder",
   description: "MOFinder - Metal-Organic Frameworks Database",
   icons: {
-    icon: '/icons/logo.svg'
+    icon: '/icons/favicon.svg'
   }
 };
 

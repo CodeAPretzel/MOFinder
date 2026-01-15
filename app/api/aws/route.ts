@@ -1,6 +1,11 @@
 import { NextResponse } from "next/server";
 import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3";
-import { FILTER_DEFS } from "@/lib/utils";
+import {
+  FILTER_DEFS,
+  PARSE_BOOL,
+  PARSE_NUMBER,
+  STREAM_TO_STRING
+} from "@/lib/utils";
 
 export const runtime = "nodejs";
 
@@ -12,17 +17,6 @@ const CACHE_TTL_MS = 5 * 60 * 1000;
 let cachedData: any[] | null = null;
 let cachedAt = 0;
 
-const parseNumber = (v: string | null): number | null => {
-  if (v == null || v === "") return null;
-
-  const n = Number(v);
-  return Number.isFinite(n) ? n : null;
-}
-
-const parseBool = (v: string | null): boolean => {
-  return v === "true" || v === "1" || v === "yes";
-}
-
 // Used for 'metal' filter in 'metal_1' JSON attribute
 const containsMetalSymbol = (precursor: string, symbol: string): boolean => {
   if (!precursor || !symbol) return false;
@@ -31,8 +25,17 @@ const containsMetalSymbol = (precursor: string, symbol: string): boolean => {
   return re.test(precursor);
 };
 
-
 const matchesFilters = (m: MofEntry, p: URLSearchParams): boolean => {
+  // special: doi
+  const doiParam = p.get("doi");
+  if (doiParam) {
+    const want = decodeURIComponent(doiParam);
+    const have = String((m as any).doi ?? "");
+    if (!have || have !== want) return false;
+    // (Optionally) return true here if you want doi to override all other filters
+    // return true;
+  }
+
   // special: search
   const q = (p.get(FILTER_DEFS.searchQuery.param) ?? "").trim().toLowerCase();
   if (q) {
@@ -51,7 +54,7 @@ const matchesFilters = (m: MofEntry, p: URLSearchParams): boolean => {
     const raw = p.get(def.param);
 
     if (def.kind === "boolean") {
-      const want = parseBool(raw);
+      const want = PARSE_BOOL(raw);
       if (want && !(m as any)[def.field!]) return false;
     }
 
@@ -66,12 +69,12 @@ const matchesFilters = (m: MofEntry, p: URLSearchParams): boolean => {
     }
 
     if (def.kind === "numberMin") {
-      const min = parseNumber(raw);
+      const min = PARSE_NUMBER(raw);
       if (min != null && Number((m as any)[def.field!] ?? 0) < min) return false;
     }
 
     if (def.kind === "numberMax") {
-      const max = parseNumber(raw);
+      const max = PARSE_NUMBER(raw);
       if (max != null && Number((m as any)[def.field!] ?? 0) > max) return false;
     }
   }
@@ -79,22 +82,15 @@ const matchesFilters = (m: MofEntry, p: URLSearchParams): boolean => {
   return true;
 }
 
-async function streamToString(stream: any): Promise<string> {
-  if (stream?.transformToString) return await stream.transformToString();
-  const chunks: Buffer[] = [];
-  for await (const chunk of stream) chunks.push(Buffer.from(chunk));
-  return Buffer.concat(chunks).toString("utf-8");
-}
-
 async function loadAllMofs(): Promise<any[]> {
   const now = Date.now();
   if (cachedData && now - cachedAt < CACHE_TTL_MS) return cachedData;
 
-  const Bucket = process.env.NEXT_PUBLIC_MOF_BUCKET!;
-  const Key = process.env.NEXT_PUBLIC_MOF_KEY!;
+  const Bucket = process.env.MOF_BUCKET!;
+  const Key = process.env.MOF_KEY!;
 
   const obj = await s3.send(new GetObjectCommand({ Bucket, Key }));
-  const jsonText = await streamToString(obj.Body);
+  const jsonText = await STREAM_TO_STRING(obj.Body);
   const parsed = JSON.parse(jsonText);
 
   if (!Array.isArray(parsed)) throw new Error("MOF JSON is not an array");
@@ -106,11 +102,10 @@ async function loadAllMofs(): Promise<any[]> {
 export async function GET(req: Request) {
   try {
     const url = new URL(req.url);
+    const all = await loadAllMofs();
 
     const page = Math.max(1, Number(url.searchParams.get("page") ?? "1"));
     const pageSize = Math.min(200, Math.max(1, Number(url.searchParams.get("pageSize") ?? "9")));
-
-    const all = await loadAllMofs();
 
     // Basic pagination
     const filtered = all.filter((m) => matchesFilters(m as MofEntry, url.searchParams))
