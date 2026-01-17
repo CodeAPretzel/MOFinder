@@ -1,10 +1,5 @@
 /* eslint-disable no-unused-vars */
 
-declare type SearchParamProps = {
-  params: { [key: string]: string };
-  searchParams: { [key: string]: string | string[] | undefined };
-};
-
 declare type MofEntry = {
   doi: string;
   mof_name: string;
@@ -30,10 +25,9 @@ declare type MofEntry = {
   activation_procedure: string;
 }
 
-declare type AiMetrics = {
-  synthesizability: number;
-  water_stability_score: number;
-  thermal_stability_score: number;
+declare type SearchParamProps = {
+  params: { [key: string]: string };
+  searchParams: { [key: string]: string | string[] | undefined };
 };
 
 declare type FilterState = {
@@ -47,6 +41,18 @@ declare type FilterState = {
   airStable: boolean;
   topology: string;
   metal: string;
+}
+
+declare type FilterKind =
+  | { kind: "search"; param: string }
+  | { kind: "numberMin" | "numberMax"; param: string; field: string }
+  | { kind: "boolean"; param: string; field: string }
+  | { kind: "stringEq"; param: string; field: string };
+
+declare interface FilterSidebarProps {
+  filters: FilterState;
+  setFilters: React.Dispatch<React.SetStateAction<FilterState>>;
+  resultsCount: number;
 }
 
 declare interface PaginationProps {
@@ -78,11 +84,11 @@ declare interface HeaderProps {
   toggleTheme: () => void;
 }
 
-declare interface FilterSidebarProps {
-  filters: FilterState;
-  setFilters: React.Dispatch<React.SetStateAction<FilterState>>;
-  resultsCount: number;
-}
+declare type AiMetrics = {
+  synthesizability: number;
+  water_stability_score: number;
+  thermal_stability_score: number;
+};
 
 // declare interface AiAssistantProps {
 //   isOpen: boolean;

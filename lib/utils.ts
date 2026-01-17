@@ -1,13 +1,3 @@
-export type FilterKind = "numberMin" | "numberMax" | "boolean" | "stringEq" | "search";
-
-type FilterDef<K extends FilterKind> = {
-  kind: K;
-  /** Query param name in the URL */
-  param: string;
-  /** Path/key on MofEntry to test */
-  field?: keyof MofEntry;
-};
-
 export const FILTER_DEFS = {
   // search query across multiple fields (special)
   searchQuery: { kind: "search", param: "searchQuery" },
@@ -26,7 +16,7 @@ export const FILTER_DEFS = {
   // equals filters
   topology: { kind: "stringEq", param: "topology", field: "topology_code" },
   metal: { kind: "stringEq", param: "metal", field: "metal_1_abbr" },
-} as const;
+} as const satisfies Record<string, FilterKind>;
 
 export const PARSE_NUMBER = (v: string | null): number | null => {
   if (v == null || v === "") return null;
