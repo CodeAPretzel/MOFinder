@@ -6,27 +6,27 @@ import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"], variable: '--font-inter' });
 const ibmPlexSerif = IBM_Plex_Serif({
-  subsets: ['latin'],
-  weight: ['400', '700'],
-  variable: '--font-ibm-plex-serif'
+	subsets: ['latin'],
+	weight: ['400', '700'],
+	variable: '--font-ibm-plex-serif'
 })
 
 export const metadata: Metadata = {
-  title: "MOFinder",
-  description: "MOFinder - Metal-Organic Frameworks Database",
-  icons: {
-    icon: '/icons/favicon.svg'
-  }
+	title: "MOFinder",
+	description: "MOFinder - Metal-Organic Frameworks Database",
+	icons: {
+		icon: '/icons/favicon.svg'
+	}
 };
 
 export default function RootLayout({
-  children,
+	children,
 }: Readonly<{
-  children: React.ReactNode;
+	children: React.ReactNode;
 }>) {
-  return (
-    <html lang="en">
-      <body className={`${inter.variable} ${ibmPlexSerif.variable}`}>{children}</body>
-    </html>
-  );
+	return (
+		<html lang="en">
+			<body className={`${inter.variable} ${ibmPlexSerif.variable}`}>{children}</body>
+		</html>
+	);
 }

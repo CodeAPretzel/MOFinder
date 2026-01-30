@@ -1,31 +1,31 @@
 import { FILTER_DEFS } from "@/lib/utils";
 
 export async function MofAwsHandler(filters: FilterState, page: number, pageSize = 9, doi?: string) {
-  const params = new URLSearchParams();
-  params.set("page", String(page))
-  params.set("pageSize", String(pageSize))
+	const params = new URLSearchParams();
+	params.set("page", String(page))
+	params.set("pageSize", String(pageSize))
 
-  if (doi) params.set("doi", doi);
+	if (doi) params.set("doi", doi);
 
-  for (const [key, def] of Object.entries(FILTER_DEFS)) {
-    const value = (filters as any)[key];
+	for (const [key, def] of Object.entries(FILTER_DEFS)) {
+		const value = (filters as any)[key];
 
-    // skip defaults / empties
-    if (value === "" || value === false || value === 0 || value == null) continue;
+		// skip defaults / empties
+		if (value === "" || value === false || value === 0 || value == null) continue;
 
-    params.set(def.param, String(value));
-  }
+		params.set(def.param, String(value));
+	}
 
-  const res = await fetch(`/api/aws?${params.toString()}`);
+	const res = await fetch(`/api/aws?${params.toString()}`);
 
-  if (!res.ok) {
-    throw new Error(`Failed to fetch MOFs (${res.status})`);
-  }
+	if (!res.ok) {
+		throw new Error(`Failed to fetch MOFs (${res.status})`);
+	}
 
-  return res.json() as Promise<{
-    total: number;
-    page: number;
-    pageSize: number;
-    data: MofEntry[]
-  }>;
+	return res.json() as Promise<{
+		total: number;
+		page: number;
+		pageSize: number;
+		data: MofEntry[]
+	}>;
 }
