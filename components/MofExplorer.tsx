@@ -102,7 +102,7 @@ const MofExplorer = () => {
 		return () => {
 			cancelled = true;
 		};
-	}, [filtersKey, page, retryKey]);
+	}, [filtersKey, page, retryKey, doi]);
 
 	// Open doi mof card
 	useEffect(() => {
