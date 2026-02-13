@@ -16,7 +16,7 @@ export async function MofMysqlHandler(filters: FilterState, page: number, pageSi
 		params.set(def.param, String(value));
 	}
 
-	const res = await fetch(`/api/aws?${params.toString()}`);
+	const res = await fetch(`/api/mysql?${params.toString()}`);
 
 	if (!res.ok) {
 		throw new Error(`Failed to fetch MOFs (${res.status})`);
