@@ -99,6 +99,7 @@ function buildWhere(p: URLSearchParams): { whereSql: string; params: any[] } {
 		if (def.kind === "numberMin") {
 			const min = PARSE_NUMBER(raw);
 			if (min != null && def.field) {
+				if (min === 0) continue;
 				clauses.push(`${def.field} >= ?`);
 				params.push(min);
 			}
@@ -107,6 +108,7 @@ function buildWhere(p: URLSearchParams): { whereSql: string; params: any[] } {
 		if (def.kind === "numberMax") {
 			const max = PARSE_NUMBER(raw);
 			if (max != null && def.field) {
+				if (max === 0) continue;
 				clauses.push(`${def.field} <= ?`);
 				params.push(max);
 			}

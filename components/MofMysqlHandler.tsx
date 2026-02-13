@@ -13,6 +13,9 @@ export async function MofMysqlHandler(filters: FilterState, page: number, pageSi
 		// skip defaults / empties
 		if (value == null || value === "" || value === false) continue;
 
+		// Skip default 0 for numeric filters
+		if (typeof value === "number" && value === 0) continue;
+
 		params.set(def.param, String(value));
 	}
 
