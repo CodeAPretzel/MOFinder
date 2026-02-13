@@ -20,6 +20,7 @@
 		"class-variance-authority": "^0.7.1",
 		"clsx": "^2.1.1",
 		"lucide-react": "^0.374.0",
+		"mysql2": "^3.17.1",
 		"next": "^14.2.35",
 		"query-string": "^9.0.0",
 		"react": "^18",

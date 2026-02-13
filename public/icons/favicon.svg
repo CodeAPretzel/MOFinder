@@ -1,1 +1,59 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-flask-conical-icon lucide-flask-conical"><path d="M14 2v6a2 2 0 0 0 .245.96l5.51 10.08A2 2 0 0 1 18 22H6a2 2 0 0 1-1.755-2.96l5.51-10.08A2 2 0 0 0 10 8V2"/><path d="M6.453 15h11.094"/><path d="M8.5 2h7"/></svg>
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="Layer_2" data-name="Layer 2" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 89.05 90.38">
+  <defs>
+    <style>
+      .cls-1 {
+        fill: #cacaca;
+      }
+
+      .cls-2 {
+        fill: url(#New_Gradient_Swatch_copy_3);
+      }
+
+      .cls-3 {
+        fill: url(#New_Gradient_Swatch_copy_5);
+      }
+
+      .cls-4 {
+        fill: url(#New_Gradient_Swatch_copy_4);
+      }
+    </style>
+    <linearGradient id="New_Gradient_Swatch_copy_4" data-name="New Gradient Swatch copy 4" x1="25.7" y1="23.68" x2="76.09" y2="23.68" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#231815"/>
+      <stop offset=".4" stop-color="#541117"/>
+      <stop offset="1" stop-color="#a3061b"/>
+    </linearGradient>
+    <linearGradient id="New_Gradient_Swatch_copy_3" data-name="New Gradient Swatch copy 3" x1="10.54" y1="66.48" x2="62.31" y2="66.48" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#3c7f70"/>
+      <stop offset=".5" stop-color="#304d44"/>
+      <stop offset="1" stop-color="#231815"/>
+    </linearGradient>
+    <linearGradient id="New_Gradient_Swatch_copy_5" data-name="New Gradient Swatch copy 5" x1="34.05" y1="44.57" x2="53.28" y2="44.57" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#354b44"/>
+      <stop offset=".18" stop-color="#2b312c"/>
+      <stop offset=".36" stop-color="#251e1b"/>
+      <stop offset=".49" stop-color="#231815"/>
+      <stop offset=".62" stop-color="#261715"/>
+      <stop offset=".75" stop-color="#321717"/>
+      <stop offset=".88" stop-color="#461619"/>
+      <stop offset="1" stop-color="#61151d"/>
+    </linearGradient>
+  </defs>
+  <g id="_图层_1" data-name="图层 1">
+    <g>
+      <path class="cls-4" d="M55.16,38.9c-2.24,0-4.32-1.13-5.55-3.02-1.29-1.99-3.5-3.18-5.87-3.18s-4.58,1.2-5.87,3.18c-1.23,1.89-3.31,3.02-5.55,3.02-3.65,0-6.62-2.97-6.62-6.62s2.97-6.61,6.62-6.61c2.24,0,4.32,1.13,5.55,3.02,1.29,1.99,3.5,3.18,5.87,3.18s4.58-1.2,5.87-3.18c1.23-1.89,3.31-3.02,5.55-3.02.2,0,.39,0,.58.02.2.02.41.03.61.03,2.07,0,4.05-.92,5.39-2.53,1.47-1.77,1.98-4.14,1.36-6.35-.16-.57-.24-1.16-.24-1.77,0-3.65,2.97-6.62,6.62-6.62s6.62,2.97,6.62,6.62-2.97,6.62-6.62,6.62c-.2,0-.39,0-.58-.02-.2-.02-.41-.03-.61-.03-2.07,0-4.05.92-5.39,2.53-1.47,1.77-1.98,4.14-1.36,6.35.16.57.24,1.16.24,1.77,0,3.65-2.97,6.62-6.62,6.62Z"/>
+      <path class="cls-2" d="M17.16,81.32c-3.65,0-6.62-2.97-6.62-6.62s2.97-6.62,6.62-6.62c.4,0,.79.04,1.17.1.41.07.83.11,1.24.11,1.9,0,3.74-.77,5.07-2.17,1.62-1.7,2.28-4.1,1.76-6.4-.11-.48-.17-.98-.17-1.48,0-3.65,2.97-6.61,6.61-6.61,2.24,0,4.32,1.13,5.55,3.03,1.29,1.99,3.5,3.18,5.87,3.18s4.58-1.2,5.87-3.18c1.23-1.89,3.31-3.03,5.55-3.03,3.65,0,6.62,2.97,6.62,6.61s-2.97,6.62-6.62,6.62c-2.24,0-4.32-1.13-5.55-3.03-1.29-1.99-3.5-3.18-5.87-3.18s-4.58,1.2-5.87,3.18c-1.23,1.89-3.31,3.03-5.55,3.03-.4,0-.79-.03-1.18-.1-.41-.07-.82-.11-1.23-.11-1.9,0-3.74.77-5.07,2.17-1.62,1.7-2.28,4.1-1.76,6.4.11.48.17.98.17,1.48,0,3.65-2.97,6.62-6.62,6.62Z"/>
+      <path class="cls-3" d="M49.58,34.27s1.14,1.66-1.25,5.15l-11.35,11.45s-1.45,1.24-2.94,1.18l3.31,2.82s-.33-1.69.82-3.11l11.33-11.68s1.49-1.57,3.36-2.02-3.28-3.79-3.28-3.79Z"/>
+      <circle class="cls-1" cx="44.53" cy="71.22" r="5.33"/>
+      <circle class="cls-1" cx="44.53" cy="19.28" r="5.33"/>
+      <circle class="cls-1" cx="67.48" cy="44.98" r="5.33"/>
+      <circle class="cls-1" cx="21.15" cy="44.98" r="5.33"/>
+      <circle class="cls-1" cx="44.53" cy="3.86" r="3.86"/>
+      <circle class="cls-1" cx="44.53" cy="86.52" r="3.86"/>
+      <circle class="cls-1" cx="66.76" cy="70.85" r="3.86"/>
+      <circle class="cls-1" cx="85.19" cy="44.98" r="3.86"/>
+      <circle class="cls-1" cx="3.86" cy="44.98" r="3.86"/>
+      <circle class="cls-1" cx="21.15" cy="19.28" r="3.86"/>
+    </g>
+  </g>
+</svg>

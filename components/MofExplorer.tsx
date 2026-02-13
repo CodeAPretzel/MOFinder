@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { Search, Beaker, LineChart, Sparkles, FlaskConical } from 'lucide-react';
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
-import { MofAwsHandler } from '@/components/MofAwsHandler';
+import { MofMysqlHandler } from '@/components/MofMysqlHandler';
 import Header from '@/components/Header';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import ErrorPanel from '@/components/ErrorPanel';
@@ -83,7 +83,7 @@ const MofExplorer = () => {
 				const effectivePageSize = doi ? 1 : pageSize;
 				const effectivePage = doi ? 1 : page;
 
-				const resp = await MofAwsHandler(filters, effectivePage, effectivePageSize, doi);
+				const resp = await MofMysqlHandler(filters, effectivePage, effectivePageSize, doi);
 				if (!cancelled) {
 					setMofData(resp.data);
 					setTotalCount(resp.total);

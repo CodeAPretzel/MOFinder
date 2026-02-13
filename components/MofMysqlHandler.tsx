@@ -1,6 +1,6 @@
 import { FILTER_DEFS } from "@/lib/utils";
 
-export async function MofAwsHandler(filters: FilterState, page: number, pageSize = 9, doi?: string) {
+export async function MofMysqlHandler(filters: FilterState, page: number, pageSize = 9, doi?: string) {
 	const params = new URLSearchParams();
 	params.set("page", String(page))
 	params.set("pageSize", String(pageSize))
@@ -11,7 +11,7 @@ export async function MofAwsHandler(filters: FilterState, page: number, pageSize
 		const value = (filters as any)[key];
 
 		// skip defaults / empties
-		if (value === "" || value === false || value === 0 || value == null) continue;
+		if (value == null || value === "" || value === false) continue;
 
 		params.set(def.param, String(value));
 	}
