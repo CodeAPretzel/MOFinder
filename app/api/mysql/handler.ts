@@ -1,12 +1,13 @@
 import { FILTER_DEFS } from "@/lib/utils";
 
-export async function MofMysqlHandler(filters: FilterState, page: number, pageSize = 9, doi?: string) {
+export async function mofToMysqlHandler(filters: FilterState, page: number, pageSize = 9, doi?: string) {
 	const params = new URLSearchParams();
 	params.set("page", String(page))
 	params.set("pageSize", String(pageSize))
 
 	if (doi) params.set("doi", doi);
 
+	// Normalize object entires with FILTER_DEFS
 	for (const [key, def] of Object.entries(FILTER_DEFS)) {
 		const value = (filters as any)[key];
 
@@ -16,7 +17,11 @@ export async function MofMysqlHandler(filters: FilterState, page: number, pageSi
 		// Skip default 0 for numeric filters
 		if (typeof value === "number" && value === 0) continue;
 
-		params.set(def.param, String(value));
+		if (def.kind === "boolean") {
+			params.set(def.param, value ? "1" : "0");
+		} else {
+			params.set(def.param, String(value));
+		}
 	}
 
 	const res = await fetch(`/api/mysql?${params.toString()}`);

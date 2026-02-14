@@ -26,7 +26,9 @@ export const PARSE_NUMBER = (v: string | null): number | null => {
 }
 
 export const PARSE_BOOL = (v: string | null): boolean => {
-	return v === "true" || v === "1" || v === "yes";
+	if (!v) return false;
+	const s = v.trim().toLowerCase();
+	return s === "true" || s === "1" || s === "yes" || s === "on";
 }
 
 export async function STREAM_TO_STRING(stream: any): Promise<string> {

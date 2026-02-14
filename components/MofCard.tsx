@@ -21,12 +21,12 @@ const MofCard: React.FC<MofCardProps> = ({ mof, onClick }) => {
 					</div>
 					<div className="flex gap-1">
 						{/* Stability Badges */}
-						{mof.water_stable && (
+						{!!mof.water_stable && (
 							<div className="p-1 rounded bg-blue-50 dark:bg-blue-900/20 text-blue-500 dark:text-blue-400" title="Water Stable">
 								<Droplets size={14} />
 							</div>
 						)}
-						{mof.air_stable && (
+						{!!mof.air_stable && (
 							<div className="p-1 rounded bg-teal-50 dark:bg-teal-900/20 text-teal-500 dark:text-teal-400" title="Air Stable">
 								<Wind size={14} />
 							</div>
