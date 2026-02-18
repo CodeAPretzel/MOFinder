@@ -13,3 +13,7 @@ jobs:
     steps:
       - name: Deploy
         run: /var/www/mofinder/deploy.sh
+          whoami
+          echo "HOME=$HOME"
+          ls -la ~/.ssh || true
+          ssh -vvv -i /home/zhenglab/.ssh/id_ed25519 -o IdentitiesOnly=yes -T git@github.com || true
