@@ -12,4 +12,4 @@ jobs:
 
     steps:
       - name: Deploy
-        run: /var/www/deploy.sh
+        run: /var/www/mofinder/deploy.sh
