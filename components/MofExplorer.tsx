@@ -195,11 +195,9 @@ const MofExplorer = () => {
 							</div>
 						</div>
 
-						{/* Loading/Error First then Clear Filters if no Results */}
+						{/* Loading handler, then clear filters if no results */}
 						{dataLoading ? (
 							<LoadingSpinner />
-						) : dataError ? (
-							<ErrorPanel message={dataError} onRetry={retryFetch} />
 						) : pageItems.length > 0 ? (
 							<MofPagination
 								data={pageItems}
