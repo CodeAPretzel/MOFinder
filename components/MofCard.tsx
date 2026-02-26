@@ -42,7 +42,7 @@ const MofCard: React.FC<MofCardProps> = ({ mof, onClick }) => {
 					</div>
 				</div>
 
-				<p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed max-h-10 overflow-y-auto pr-1">
+				<p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed max-h-10 overflow-y-auto pr-2 custom-scrollbar">
 					{mof.mof_description}
 				</p>
 			</div>
