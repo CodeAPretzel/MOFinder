@@ -163,11 +163,13 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({ filters, setFilters, resu
 							<Thermometer size={12} /> Max Temp
 						</div>
 						<select
-							value={filters.maxTemperature}
-							onChange={(e) => handleChange('maxTemperature', parseInt(e.target.value))}
+							value={filters.maxTemperature ?? ""}
+							onChange={(e) => 
+								handleChange('maxTemperature', e.target.value === "" ? undefined : Number(e.target.value))
+							}
 							className="w-full p-2 text-sm bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-md focus:ring-1 focus:ring-blue-500 focus:outline-none dark:text-slate-200"
 						>
-							<option value={300}>Any</option>
+							<option value="">Any</option>
 							<option value={100}>&lt; 100°C</option>
 							<option value={150}>&lt; 150°C</option>
 							<option value={200}>&lt; 200°C</option>
@@ -178,11 +180,13 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({ filters, setFilters, resu
 							<Clock size={12} /> Max Time
 						</div>
 						<select
-							value={filters.maxTime}
-							onChange={(e) => handleChange('maxTime', parseInt(e.target.value))}
+							value={filters.maxTime ?? ""}
+							onChange={(e) => 
+								handleChange('maxTime', e.target.value === "" ? undefined : Number(e.target.value))
+							}
 							className="w-full p-2 text-sm bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-md focus:ring-1 focus:ring-blue-500 focus:outline-none dark:text-slate-200"
 						>
-							<option value={200}>Any</option>
+							<option value="">Any</option>
 							<option value={24}>&lt; 24 h</option>
 							<option value={48}>&lt; 48 h</option>
 							<option value={72}>&lt; 72 h</option>
