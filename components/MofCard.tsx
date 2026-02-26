@@ -10,17 +10,20 @@ const MofCard: React.FC<MofCardProps> = ({ mof, onClick }) => {
 
 			{/* Card Header */}
 			<div className="p-5 pb-3">
-				<div className="flex items-start justify-between mb-2">
-					<div className="flex items-center gap-2">
-						<div className="p-1.5 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-lg">
+				<div className="flex items-start justify-between mb-2 gap-3">
+					<div className="flex items-start gap-2 min-w-0 flex-1">
+						<div className="p-1.5 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-lg flex-shrink-0">
 							<Box size={18} />
 						</div>
-						<h3 className="text-lg font-bold text-slate-900 dark:text-slate-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+						
+						<h3
+							className="text-lg font-bold text-slate-900 dark:text-slate-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors min-w-0 truncate"
+							title={mof.mof_name}
+						>
 							{mof.mof_name}
 						</h3>
 					</div>
-					<div className="flex gap-1">
-						{/* Stability Badges */}
+					<div className="flex gap-1 flex-shrink-0">
 						{!!mof.water_stable && (
 							<div className="p-1 rounded bg-blue-50 dark:bg-blue-900/20 text-blue-500 dark:text-blue-400" title="Water Stable">
 								<Droplets size={14} />
@@ -39,7 +42,7 @@ const MofCard: React.FC<MofCardProps> = ({ mof, onClick }) => {
 					</div>
 				</div>
 
-				<p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2 h-8 leading-relaxed">
+				<p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed max-h-10 overflow-y-auto pr-1">
 					{mof.mof_description}
 				</p>
 			</div>
@@ -89,8 +92,8 @@ const MofCard: React.FC<MofCardProps> = ({ mof, onClick }) => {
 			{/* Footer */}
 			<div className="p-4 bg-slate-50 dark:bg-slate-900/30 border-t border-slate-100 dark:border-slate-700 flex items-center justify-between">
 				<div className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${mof.crystal_form === 'Single Crystal'
-						? 'bg-purple-50 text-purple-600 border-purple-100 dark:bg-purple-900/20 dark:text-purple-300 dark:border-purple-900/50'
-						: 'bg-slate-100 text-slate-600 border-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700'
+					? 'bg-purple-50 text-purple-600 border-purple-100 dark:bg-purple-900/20 dark:text-purple-300 dark:border-purple-900/50'
+					: 'bg-slate-100 text-slate-600 border-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700'
 					}`}>
 					{mof.crystal_form}
 				</div>

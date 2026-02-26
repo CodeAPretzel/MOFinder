@@ -6,7 +6,6 @@ import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { mofToMysqlHandler } from '@/app/api/mysql/handler';
 import Header from '@/components/Header';
 import LoadingSpinner from '@/components/LoadingSpinner';
-import ErrorPanel from '@/components/ErrorPanel';
 import FilterSidebar from '@/components/FilterSidebar';
 import DetailModal from '@/components/DetailModal';
 import Theme from '@/components/Theme';
@@ -22,7 +21,6 @@ const MofExplorer = () => {
 	const pageSize = 9;
 
 	const [dataLoading, setDataLoading] = useState(false);
-	const [dataError, setDataError] = useState<string | null>(null);
 
 	const [retryKey, setRetryKey] = useState(0);
 	const retryFetch = () => {
@@ -77,7 +75,6 @@ const MofExplorer = () => {
 		(async () => {
 			try {
 				setDataLoading(true);
-				setDataError(null);
 
 				// Apply doi handling
 				const effectivePageSize = doi ? 1 : pageSize;
@@ -90,7 +87,8 @@ const MofExplorer = () => {
 				}
 			} catch (e: any) {
 				if (!cancelled) {
-					setDataError(e?.message ?? "Failed to load MOF dataset");
+					// error handling
+					return;
 				}
 			} finally {
 				if (!cancelled) {
@@ -102,7 +100,7 @@ const MofExplorer = () => {
 		return () => {
 			cancelled = true;
 		};
-	}, [filtersKey, page, retryKey, doi]);
+	}, [filtersKey, retryKey, page, doi]);
 
 	// Open doi mof card
 	useEffect(() => {
@@ -217,7 +215,10 @@ const MofExplorer = () => {
 									Try adjusting your filters (e.g., lowering surface area requirements) or checking different stability toggles.
 								</p>
 								<button
-									onClick={() => setFilters(initialFilters())}
+									onClick={() => {
+										setFilters(initialFilters())
+										retryFetch()
+									}}
 									className="mt-6 px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
 								>
 									Clear Filters
