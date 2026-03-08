@@ -31,7 +31,7 @@ function toBooleanFulltext(q: string): string {
 		.toLowerCase()
 		.match(/[a-z0-9]+/g) ?? [];
 
-	return terms.length ? 
+	return terms.length ?
 		terms.map((t) => `+${t}*`).join(" ")
 		: "";
 }
@@ -60,12 +60,23 @@ function buildWhere(p: URLSearchParams): { whereSql: string; params: any[] } {
 	const q = (p.get(FILTER_DEFS.searchQuery.param) ?? "").trim();
 	if (q) {
 		const bq = toBooleanFulltext(q);
+
+		const orParts: string[] = [];
 		if (bq) {
-			clauses.push(
+			orParts.push(
 				`MATCH(mof_name, metal_1, metal_1_abbr, linker_1, linker_1_abbr) AGAINST (? IN BOOLEAN MODE)`
 			);
 			params.push(bq);
 		}
+
+		// fallback for identifier-like searches
+		orParts.push(`LOWER(mof_name) LIKE ?`);
+		params.push(`%${q.toLowerCase()}%`);
+
+		orParts.push(`LOWER(linker_1_abbr) LIKE ?`);
+		params.push(`%${q.toLowerCase()}%`);
+
+		clauses.push(`(${orParts.join(" OR ")})`);
 	}
 
 	for (const def of Object.values(FILTER_DEFS)) {
