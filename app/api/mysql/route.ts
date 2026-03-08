@@ -28,15 +28,12 @@ const pool: Pool =
 // Build a BOOLEAN MODE fulltext query like: "+foo* +bar*"
 function toBooleanFulltext(q: string): string {
 	const terms = q
-		.trim()
 		.toLowerCase()
-		.split(/\s+/)
-		.filter(Boolean)
-		.map((t) => t.replace(/[+\-<>()~*"@]/g, "")) // strip boolean operators/special chars
-		.filter(Boolean);
+		.match(/[a-z0-9]+/g) ?? [];
 
-	if (!terms.length) return "";
-	return terms.map((t) => `+${t}*`).join(" ");
+	return terms.length ? 
+		terms.map((t) => `+${t}*`).join(" ")
+		: "";
 }
 
 // Used for 'metal' filter in 'metal_1' column
