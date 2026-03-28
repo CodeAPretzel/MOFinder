@@ -1,0 +1,6 @@
+{
+  "version": 3,
+  "sources": [],
+  "sections": [
+    {"offset": {"line": 4, "column": 0}, "map": {"version":3,"sources":["file:///C:/Users/pretz/Documents/Zach%20Zheng%20Lab%20Files/Process%20DOI%20Paper%20for%20Website%20Dev/Application/mofinder/app/%28root%29/layout.tsx"],"sourcesContent":["import React from 'react';\r\n\r\nexport default function RootLayout({\r\n\tchildren,\r\n}: Readonly<{ children: React.ReactNode }>) {\r\n\treturn (\r\n\t\t<div className=\"min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans transition-colors duration-200\">\r\n\t\t\t{children}\r\n\t\t</div>\r\n\t);\r\n}"],"names":[],"mappings":";;;;;;AAEe,SAAS,WAAW,EAClC,QAAQ,EACiC;IACzC,qBACC,8OAAC;QAAI,WAAU;kBACb;;;;;;AAGJ"}}]
+}

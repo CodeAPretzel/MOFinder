@@ -1,0 +1,813 @@
+[00:00:00.796] Server  LOG     ✓ Ready in 527ms
+[00:00:17.711] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:04:53.571] Server  ERROR   ⨯ ./components/FilterSidebar.tsx:2:1
+Module not found: Can't resolve '@/components/SmilesEditor'
+  1 | import React from 'react';
+> 2 | import SmilesEditor from '@/components/SmilesEditor';
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  3 | import { TOPOLOGIES, METALS } from '../constants';
+  4 | import { Flame, Droplets, Wind, Thermometer, Clock, RotateCcw, ChevronDown } from 'lucide-react';
+  5 |
+
+Import map: aliased to relative './components/SmilesEditor' inside of [project]/
+
+
+Import traces:
+  Client Component Browser:
+    ./components/FilterSidebar.tsx [Client Component Browser]
+    ./components/MofExplorer.tsx [Client Component Browser]
+    ./components/MofExplorer.tsx [Server Component]
+    ./app/(root)/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./components/FilterSidebar.tsx [Client Component SSR]
+    ./components/MofExplorer.tsx [Client Component SSR]
+    ./components/MofExplorer.tsx [Server Component]
+    ./app/(root)/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:04:53.575] Server  ERROR   ⨯ ./components/FilterSidebar.tsx:2:1
+Module not found: Can't resolve '@/components/SmilesEditor'
+  1 | import React from 'react';
+> 2 | import SmilesEditor from '@/components/SmilesEditor';
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  3 | import { TOPOLOGIES, METALS } from '../constants';
+  4 | import { Flame, Droplets, Wind, Thermometer, Clock, RotateCcw, ChevronDown } from 'lucide-react';
+  5 |
+
+Import map: aliased to relative './components/SmilesEditor' inside of [project]/
+
+
+Import traces:
+  Client Component Browser:
+    ./components/FilterSidebar.tsx [Client Component Browser]
+    ./components/MofExplorer.tsx [Client Component Browser]
+    ./components/MofExplorer.tsx [Server Component]
+    ./app/(root)/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./components/FilterSidebar.tsx [Client Component SSR]
+    ./components/MofExplorer.tsx [Client Component SSR]
+    ./components/MofExplorer.tsx [Server Component]
+    ./app/(root)/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:04:53.578] Server  ERROR   ⨯ ./components/FilterSidebar.tsx:2:1
+Module not found: Can't resolve '@/components/SmilesEditor'
+  1 | import React from 'react';
+> 2 | import SmilesEditor from '@/components/SmilesEditor';
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  3 | import { TOPOLOGIES, METALS } from '../constants';
+  4 | import { Flame, Droplets, Wind, Thermometer, Clock, RotateCcw, ChevronDown } from 'lucide-react';
+  5 |
+
+Import map: aliased to relative './components/SmilesEditor' inside of [project]/
+
+
+Import traces:
+  Client Component Browser:
+    ./components/FilterSidebar.tsx [Client Component Browser]
+    ./components/MofExplorer.tsx [Client Component Browser]
+    ./components/MofExplorer.tsx [Server Component]
+    ./app/(root)/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./components/FilterSidebar.tsx [Client Component SSR]
+    ./components/MofExplorer.tsx [Client Component SSR]
+    ./components/MofExplorer.tsx [Server Component]
+    ./app/(root)/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:04:53.582] Server  ERROR   ⨯ ./components/FilterSidebar.tsx:2:1
+Module not found: Can't resolve '@/components/SmilesEditor'
+  1 | import React from 'react';
+> 2 | import SmilesEditor from '@/components/SmilesEditor';
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  3 | import { TOPOLOGIES, METALS } from '../constants';
+  4 | import { Flame, Droplets, Wind, Thermometer, Clock, RotateCcw, ChevronDown } from 'lucide-react';
+  5 |
+
+Import map: aliased to relative './components/SmilesEditor' inside of [project]/
+
+
+Import traces:
+  Client Component Browser:
+    ./components/FilterSidebar.tsx [Client Component Browser]
+    ./components/MofExplorer.tsx [Client Component Browser]
+    ./components/MofExplorer.tsx [Server Component]
+    ./app/(root)/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./components/FilterSidebar.tsx [Client Component SSR]
+    ./components/MofExplorer.tsx [Client Component SSR]
+    ./components/MofExplorer.tsx [Server Component]
+    ./app/(root)/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:04:53.586] Server  ERROR   ⨯ ./components/FilterSidebar.tsx:2:1
+Module not found: Can't resolve '@/components/SmilesEditor'
+  1 | import React from 'react';
+> 2 | import SmilesEditor from '@/components/SmilesEditor';
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  3 | import { TOPOLOGIES, METALS } from '../constants';
+  4 | import { Flame, Droplets, Wind, Thermometer, Clock, RotateCcw, ChevronDown } from 'lucide-react';
+  5 |
+
+Import map: aliased to relative './components/SmilesEditor' inside of [project]/
+
+
+Import traces:
+  Client Component Browser:
+    ./components/FilterSidebar.tsx [Client Component Browser]
+    ./components/MofExplorer.tsx [Client Component Browser]
+    ./components/MofExplorer.tsx [Server Component]
+    ./app/(root)/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./components/FilterSidebar.tsx [Client Component SSR]
+    ./components/MofExplorer.tsx [Client Component SSR]
+    ./components/MofExplorer.tsx [Server Component]
+    ./app/(root)/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:04:53.589] Server  ERROR   ⨯ ./components/FilterSidebar.tsx:2:1
+Module not found: Can't resolve '@/components/SmilesEditor'
+  1 | import React from 'react';
+> 2 | import SmilesEditor from '@/components/SmilesEditor';
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  3 | import { TOPOLOGIES, METALS } from '../constants';
+  4 | import { Flame, Droplets, Wind, Thermometer, Clock, RotateCcw, ChevronDown } from 'lucide-react';
+  5 |
+
+Import map: aliased to relative './components/SmilesEditor' inside of [project]/
+
+
+Import traces:
+  Client Component Browser:
+    ./components/FilterSidebar.tsx [Client Component Browser]
+    ./components/MofExplorer.tsx [Client Component Browser]
+    ./components/MofExplorer.tsx [Server Component]
+    ./app/(root)/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./components/FilterSidebar.tsx [Client Component SSR]
+    ./components/MofExplorer.tsx [Client Component SSR]
+    ./components/MofExplorer.tsx [Server Component]
+    ./app/(root)/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:04:53.595] Server  ERROR   ⨯ ./components/FilterSidebar.tsx:2:1
+Module not found: Can't resolve '@/components/SmilesEditor'
+  1 | import React from 'react';
+> 2 | import SmilesEditor from '@/components/SmilesEditor';
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  3 | import { TOPOLOGIES, METALS } from '../constants';
+  4 | import { Flame, Droplets, Wind, Thermometer, Clock, RotateCcw, ChevronDown } from 'lucide-react';
+  5 |
+
+Import map: aliased to relative './components/SmilesEditor' inside of [project]/
+
+
+Import traces:
+  Client Component Browser:
+    ./components/FilterSidebar.tsx [Client Component Browser]
+    ./components/MofExplorer.tsx [Client Component Browser]
+    ./components/MofExplorer.tsx [Server Component]
+    ./app/(root)/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./components/FilterSidebar.tsx [Client Component SSR]
+    ./components/MofExplorer.tsx [Client Component SSR]
+    ./components/MofExplorer.tsx [Server Component]
+    ./app/(root)/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:04:53.598] Server  ERROR   ⨯ ./components/FilterSidebar.tsx:2:1
+Module not found: Can't resolve '@/components/SmilesEditor'
+  1 | import React from 'react';
+> 2 | import SmilesEditor from '@/components/SmilesEditor';
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  3 | import { TOPOLOGIES, METALS } from '../constants';
+  4 | import { Flame, Droplets, Wind, Thermometer, Clock, RotateCcw, ChevronDown } from 'lucide-react';
+  5 |
+
+Import map: aliased to relative './components/SmilesEditor' inside of [project]/
+
+
+Import traces:
+  Client Component Browser:
+    ./components/FilterSidebar.tsx [Client Component Browser]
+    ./components/MofExplorer.tsx [Client Component Browser]
+    ./components/MofExplorer.tsx [Server Component]
+    ./app/(root)/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./components/FilterSidebar.tsx [Client Component SSR]
+    ./components/MofExplorer.tsx [Client Component SSR]
+    ./components/MofExplorer.tsx [Server Component]
+    ./app/(root)/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:04:53.603] Server  ERROR   ⨯ ./components/FilterSidebar.tsx:2:1
+Module not found: Can't resolve '@/components/SmilesEditor'
+  1 | import React from 'react';
+> 2 | import SmilesEditor from '@/components/SmilesEditor';
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  3 | import { TOPOLOGIES, METALS } from '../constants';
+  4 | import { Flame, Droplets, Wind, Thermometer, Clock, RotateCcw, ChevronDown } from 'lucide-react';
+  5 |
+
+Import map: aliased to relative './components/SmilesEditor' inside of [project]/
+
+
+Import traces:
+  Client Component Browser:
+    ./components/FilterSidebar.tsx [Client Component Browser]
+    ./components/MofExplorer.tsx [Client Component Browser]
+    ./components/MofExplorer.tsx [Server Component]
+    ./app/(root)/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./components/FilterSidebar.tsx [Client Component SSR]
+    ./components/MofExplorer.tsx [Client Component SSR]
+    ./components/MofExplorer.tsx [Server Component]
+    ./app/(root)/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:04:53.606] Server  ERROR   ⨯ ./components/FilterSidebar.tsx:2:1
+Module not found: Can't resolve '@/components/SmilesEditor'
+  1 | import React from 'react';
+> 2 | import SmilesEditor from '@/components/SmilesEditor';
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  3 | import { TOPOLOGIES, METALS } from '../constants';
+  4 | import { Flame, Droplets, Wind, Thermometer, Clock, RotateCcw, ChevronDown } from 'lucide-react';
+  5 |
+
+Import map: aliased to relative './components/SmilesEditor' inside of [project]/
+
+
+Import traces:
+  Client Component Browser:
+    ./components/FilterSidebar.tsx [Client Component Browser]
+    ./components/MofExplorer.tsx [Client Component Browser]
+    ./components/MofExplorer.tsx [Server Component]
+    ./app/(root)/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./components/FilterSidebar.tsx [Client Component SSR]
+    ./components/MofExplorer.tsx [Client Component SSR]
+    ./components/MofExplorer.tsx [Server Component]
+    ./app/(root)/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:04:53.609] Server  ERROR   ⨯ ./components/FilterSidebar.tsx:2:1
+Module not found: Can't resolve '@/components/SmilesEditor'
+  1 | import React from 'react';
+> 2 | import SmilesEditor from '@/components/SmilesEditor';
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  3 | import { TOPOLOGIES, METALS } from '../constants';
+  4 | import { Flame, Droplets, Wind, Thermometer, Clock, RotateCcw, ChevronDown } from 'lucide-react';
+  5 |
+
+Import map: aliased to relative './components/SmilesEditor' inside of [project]/
+
+
+Import traces:
+  Client Component Browser:
+    ./components/FilterSidebar.tsx [Client Component Browser]
+    ./components/MofExplorer.tsx [Client Component Browser]
+    ./components/MofExplorer.tsx [Server Component]
+    ./app/(root)/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./components/FilterSidebar.tsx [Client Component SSR]
+    ./components/MofExplorer.tsx [Client Component SSR]
+    ./components/MofExplorer.tsx [Server Component]
+    ./app/(root)/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:04:53.612] Server  ERROR   ⨯ ./components/FilterSidebar.tsx:2:1
+Module not found: Can't resolve '@/components/SmilesEditor'
+  1 | import React from 'react';
+> 2 | import SmilesEditor from '@/components/SmilesEditor';
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  3 | import { TOPOLOGIES, METALS } from '../constants';
+  4 | import { Flame, Droplets, Wind, Thermometer, Clock, RotateCcw, ChevronDown } from 'lucide-react';
+  5 |
+
+Import map: aliased to relative './components/SmilesEditor' inside of [project]/
+
+
+Import traces:
+  Client Component Browser:
+    ./components/FilterSidebar.tsx [Client Component Browser]
+    ./components/MofExplorer.tsx [Client Component Browser]
+    ./components/MofExplorer.tsx [Server Component]
+    ./app/(root)/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./components/FilterSidebar.tsx [Client Component SSR]
+    ./components/MofExplorer.tsx [Client Component SSR]
+    ./components/MofExplorer.tsx [Server Component]
+    ./app/(root)/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:04:53.615] Server  ERROR   ⨯ ./components/FilterSidebar.tsx:2:1
+Module not found: Can't resolve '@/components/SmilesEditor'
+  1 | import React from 'react';
+> 2 | import SmilesEditor from '@/components/SmilesEditor';
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  3 | import { TOPOLOGIES, METALS } from '../constants';
+  4 | import { Flame, Droplets, Wind, Thermometer, Clock, RotateCcw, ChevronDown } from 'lucide-react';
+  5 |
+
+Import map: aliased to relative './components/SmilesEditor' inside of [project]/
+
+
+Import traces:
+  Client Component Browser:
+    ./components/FilterSidebar.tsx [Client Component Browser]
+    ./components/MofExplorer.tsx [Client Component Browser]
+    ./components/MofExplorer.tsx [Server Component]
+    ./app/(root)/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./components/FilterSidebar.tsx [Client Component SSR]
+    ./components/MofExplorer.tsx [Client Component SSR]
+    ./components/MofExplorer.tsx [Server Component]
+    ./app/(root)/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:04:53.617] Server  ERROR   ⨯ ./components/FilterSidebar.tsx:2:1
+Module not found: Can't resolve '@/components/SmilesEditor'
+  1 | import React from 'react';
+> 2 | import SmilesEditor from '@/components/SmilesEditor';
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  3 | import { TOPOLOGIES, METALS } from '../constants';
+  4 | import { Flame, Droplets, Wind, Thermometer, Clock, RotateCcw, ChevronDown } from 'lucide-react';
+  5 |
+
+Import map: aliased to relative './components/SmilesEditor' inside of [project]/
+
+
+Import traces:
+  Client Component Browser:
+    ./components/FilterSidebar.tsx [Client Component Browser]
+    ./components/MofExplorer.tsx [Client Component Browser]
+    ./components/MofExplorer.tsx [Server Component]
+    ./app/(root)/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./components/FilterSidebar.tsx [Client Component SSR]
+    ./components/MofExplorer.tsx [Client Component SSR]
+    ./components/MofExplorer.tsx [Server Component]
+    ./app/(root)/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:04:53.619] Server  ERROR   ⨯ ./components/FilterSidebar.tsx:2:1
+Module not found: Can't resolve '@/components/SmilesEditor'
+  1 | import React from 'react';
+> 2 | import SmilesEditor from '@/components/SmilesEditor';
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  3 | import { TOPOLOGIES, METALS } from '../constants';
+  4 | import { Flame, Droplets, Wind, Thermometer, Clock, RotateCcw, ChevronDown } from 'lucide-react';
+  5 |
+
+Import map: aliased to relative './components/SmilesEditor' inside of [project]/
+
+
+Import traces:
+  Client Component Browser:
+    ./components/FilterSidebar.tsx [Client Component Browser]
+    ./components/MofExplorer.tsx [Client Component Browser]
+    ./components/MofExplorer.tsx [Server Component]
+    ./app/(root)/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./components/FilterSidebar.tsx [Client Component SSR]
+    ./components/MofExplorer.tsx [Client Component SSR]
+    ./components/MofExplorer.tsx [Server Component]
+    ./app/(root)/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:04:53.621] Server  ERROR   ⨯ ./components/FilterSidebar.tsx:2:1
+Module not found: Can't resolve '@/components/SmilesEditor'
+  1 | import React from 'react';
+> 2 | import SmilesEditor from '@/components/SmilesEditor';
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  3 | import { TOPOLOGIES, METALS } from '../constants';
+  4 | import { Flame, Droplets, Wind, Thermometer, Clock, RotateCcw, ChevronDown } from 'lucide-react';
+  5 |
+
+Import map: aliased to relative './components/SmilesEditor' inside of [project]/
+
+
+Import traces:
+  Client Component Browser:
+    ./components/FilterSidebar.tsx [Client Component Browser]
+    ./components/MofExplorer.tsx [Client Component Browser]
+    ./components/MofExplorer.tsx [Server Component]
+    ./app/(root)/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./components/FilterSidebar.tsx [Client Component SSR]
+    ./components/MofExplorer.tsx [Client Component SSR]
+    ./components/MofExplorer.tsx [Server Component]
+    ./app/(root)/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:04:53.623] Server  ERROR   ⨯ ./components/FilterSidebar.tsx:2:1
+Module not found: Can't resolve '@/components/SmilesEditor'
+  1 | import React from 'react';
+> 2 | import SmilesEditor from '@/components/SmilesEditor';
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  3 | import { TOPOLOGIES, METALS } from '../constants';
+  4 | import { Flame, Droplets, Wind, Thermometer, Clock, RotateCcw, ChevronDown } from 'lucide-react';
+  5 |
+
+Import map: aliased to relative './components/SmilesEditor' inside of [project]/
+
+
+Import traces:
+  Client Component Browser:
+    ./components/FilterSidebar.tsx [Client Component Browser]
+    ./components/MofExplorer.tsx [Client Component Browser]
+    ./components/MofExplorer.tsx [Server Component]
+    ./app/(root)/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./components/FilterSidebar.tsx [Client Component SSR]
+    ./components/MofExplorer.tsx [Client Component SSR]
+    ./components/MofExplorer.tsx [Server Component]
+    ./app/(root)/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:04:53.626] Server  ERROR   ⨯ ./components/FilterSidebar.tsx:2:1
+Module not found: Can't resolve '@/components/SmilesEditor'
+  1 | import React from 'react';
+> 2 | import SmilesEditor from '@/components/SmilesEditor';
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  3 | import { TOPOLOGIES, METALS } from '../constants';
+  4 | import { Flame, Droplets, Wind, Thermometer, Clock, RotateCcw, ChevronDown } from 'lucide-react';
+  5 |
+
+Import map: aliased to relative './components/SmilesEditor' inside of [project]/
+
+
+Import traces:
+  Client Component Browser:
+    ./components/FilterSidebar.tsx [Client Component Browser]
+    ./components/MofExplorer.tsx [Client Component Browser]
+    ./components/MofExplorer.tsx [Server Component]
+    ./app/(root)/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./components/FilterSidebar.tsx [Client Component SSR]
+    ./components/MofExplorer.tsx [Client Component SSR]
+    ./components/MofExplorer.tsx [Server Component]
+    ./app/(root)/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:04:53.628] Server  ERROR   ⨯ ./components/FilterSidebar.tsx:2:1
+Module not found: Can't resolve '@/components/SmilesEditor'
+  1 | import React from 'react';
+> 2 | import SmilesEditor from '@/components/SmilesEditor';
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  3 | import { TOPOLOGIES, METALS } from '../constants';
+  4 | import { Flame, Droplets, Wind, Thermometer, Clock, RotateCcw, ChevronDown } from 'lucide-react';
+  5 |
+
+Import map: aliased to relative './components/SmilesEditor' inside of [project]/
+
+
+Import traces:
+  Client Component Browser:
+    ./components/FilterSidebar.tsx [Client Component Browser]
+    ./components/MofExplorer.tsx [Client Component Browser]
+    ./components/MofExplorer.tsx [Server Component]
+    ./app/(root)/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./components/FilterSidebar.tsx [Client Component SSR]
+    ./components/MofExplorer.tsx [Client Component SSR]
+    ./components/MofExplorer.tsx [Server Component]
+    ./app/(root)/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:04:53.630] Server  ERROR   ⨯ ./components/FilterSidebar.tsx:2:1
+Module not found: Can't resolve '@/components/SmilesEditor'
+  1 | import React from 'react';
+> 2 | import SmilesEditor from '@/components/SmilesEditor';
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  3 | import { TOPOLOGIES, METALS } from '../constants';
+  4 | import { Flame, Droplets, Wind, Thermometer, Clock, RotateCcw, ChevronDown } from 'lucide-react';
+  5 |
+
+Import map: aliased to relative './components/SmilesEditor' inside of [project]/
+
+
+Import traces:
+  Client Component Browser:
+    ./components/FilterSidebar.tsx [Client Component Browser]
+    ./components/MofExplorer.tsx [Client Component Browser]
+    ./components/MofExplorer.tsx [Server Component]
+    ./app/(root)/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./components/FilterSidebar.tsx [Client Component SSR]
+    ./components/MofExplorer.tsx [Client Component SSR]
+    ./components/MofExplorer.tsx [Server Component]
+    ./app/(root)/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:04:53.632] Server  ERROR   ⨯ ./components/FilterSidebar.tsx:2:1
+Module not found: Can't resolve '@/components/SmilesEditor'
+  1 | import React from 'react';
+> 2 | import SmilesEditor from '@/components/SmilesEditor';
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  3 | import { TOPOLOGIES, METALS } from '../constants';
+  4 | import { Flame, Droplets, Wind, Thermometer, Clock, RotateCcw, ChevronDown } from 'lucide-react';
+  5 |
+
+Import map: aliased to relative './components/SmilesEditor' inside of [project]/
+
+
+Import traces:
+  Client Component Browser:
+    ./components/FilterSidebar.tsx [Client Component Browser]
+    ./components/MofExplorer.tsx [Client Component Browser]
+    ./components/MofExplorer.tsx [Server Component]
+    ./app/(root)/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./components/FilterSidebar.tsx [Client Component SSR]
+    ./components/MofExplorer.tsx [Client Component SSR]
+    ./components/MofExplorer.tsx [Server Component]
+    ./app/(root)/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:04:53.633] Server  ERROR   ⨯ ./components/FilterSidebar.tsx:2:1
+Module not found: Can't resolve '@/components/SmilesEditor'
+  1 | import React from 'react';
+> 2 | import SmilesEditor from '@/components/SmilesEditor';
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  3 | import { TOPOLOGIES, METALS } from '../constants';
+  4 | import { Flame, Droplets, Wind, Thermometer, Clock, RotateCcw, ChevronDown } from 'lucide-react';
+  5 |
+
+Import map: aliased to relative './components/SmilesEditor' inside of [project]/
+
+
+Import traces:
+  Client Component Browser:
+    ./components/FilterSidebar.tsx [Client Component Browser]
+    ./components/MofExplorer.tsx [Client Component Browser]
+    ./components/MofExplorer.tsx [Server Component]
+    ./app/(root)/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./components/FilterSidebar.tsx [Client Component SSR]
+    ./components/MofExplorer.tsx [Client Component SSR]
+    ./components/MofExplorer.tsx [Server Component]
+    ./app/(root)/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:04:53.635] Server  ERROR   ⨯ ./components/FilterSidebar.tsx:2:1
+Module not found: Can't resolve '@/components/SmilesEditor'
+  1 | import React from 'react';
+> 2 | import SmilesEditor from '@/components/SmilesEditor';
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  3 | import { TOPOLOGIES, METALS } from '../constants';
+  4 | import { Flame, Droplets, Wind, Thermometer, Clock, RotateCcw, ChevronDown } from 'lucide-react';
+  5 |
+
+Import map: aliased to relative './components/SmilesEditor' inside of [project]/
+
+
+Import traces:
+  Client Component Browser:
+    ./components/FilterSidebar.tsx [Client Component Browser]
+    ./components/MofExplorer.tsx [Client Component Browser]
+    ./components/MofExplorer.tsx [Server Component]
+    ./app/(root)/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./components/FilterSidebar.tsx [Client Component SSR]
+    ./components/MofExplorer.tsx [Client Component SSR]
+    ./components/MofExplorer.tsx [Server Component]
+    ./app/(root)/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:04:53.637] Server  ERROR   ⨯ ./components/FilterSidebar.tsx:2:1
+Module not found: Can't resolve '@/components/SmilesEditor'
+  1 | import React from 'react';
+> 2 | import SmilesEditor from '@/components/SmilesEditor';
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  3 | import { TOPOLOGIES, METALS } from '../constants';
+  4 | import { Flame, Droplets, Wind, Thermometer, Clock, RotateCcw, ChevronDown } from 'lucide-react';
+  5 |
+
+Import map: aliased to relative './components/SmilesEditor' inside of [project]/
+
+
+Import traces:
+  Client Component Browser:
+    ./components/FilterSidebar.tsx [Client Component Browser]
+    ./components/MofExplorer.tsx [Client Component Browser]
+    ./components/MofExplorer.tsx [Server Component]
+    ./app/(root)/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./components/FilterSidebar.tsx [Client Component SSR]
+    ./components/MofExplorer.tsx [Client Component SSR]
+    ./components/MofExplorer.tsx [Server Component]
+    ./app/(root)/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:04:53.639] Server  ERROR   ⨯ ./components/FilterSidebar.tsx:2:1
+Module not found: Can't resolve '@/components/SmilesEditor'
+  1 | import React from 'react';
+> 2 | import SmilesEditor from '@/components/SmilesEditor';
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  3 | import { TOPOLOGIES, METALS } from '../constants';
+  4 | import { Flame, Droplets, Wind, Thermometer, Clock, RotateCcw, ChevronDown } from 'lucide-react';
+  5 |
+
+Import map: aliased to relative './components/SmilesEditor' inside of [project]/
+
+
+Import traces:
+  Client Component Browser:
+    ./components/FilterSidebar.tsx [Client Component Browser]
+    ./components/MofExplorer.tsx [Client Component Browser]
+    ./components/MofExplorer.tsx [Server Component]
+    ./app/(root)/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./components/FilterSidebar.tsx [Client Component SSR]
+    ./components/MofExplorer.tsx [Client Component SSR]
+    ./components/MofExplorer.tsx [Server Component]
+    ./app/(root)/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:04:53.641] Server  ERROR   ⨯ ./components/FilterSidebar.tsx:2:1
+Module not found: Can't resolve '@/components/SmilesEditor'
+  1 | import React from 'react';
+> 2 | import SmilesEditor from '@/components/SmilesEditor';
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  3 | import { TOPOLOGIES, METALS } from '../constants';
+  4 | import { Flame, Droplets, Wind, Thermometer, Clock, RotateCcw, ChevronDown } from 'lucide-react';
+  5 |
+
+Import map: aliased to relative './components/SmilesEditor' inside of [project]/
+
+
+Import traces:
+  Client Component Browser:
+    ./components/FilterSidebar.tsx [Client Component Browser]
+    ./components/MofExplorer.tsx [Client Component Browser]
+    ./components/MofExplorer.tsx [Server Component]
+    ./app/(root)/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./components/FilterSidebar.tsx [Client Component SSR]
+    ./components/MofExplorer.tsx [Client Component SSR]
+    ./components/MofExplorer.tsx [Server Component]
+    ./app/(root)/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:04:53.642] Server  ERROR   ⨯ ./components/FilterSidebar.tsx:2:1
+Module not found: Can't resolve '@/components/SmilesEditor'
+  1 | import React from 'react';
+> 2 | import SmilesEditor from '@/components/SmilesEditor';
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  3 | import { TOPOLOGIES, METALS } from '../constants';
+  4 | import { Flame, Droplets, Wind, Thermometer, Clock, RotateCcw, ChevronDown } from 'lucide-react';
+  5 |
+
+Import map: aliased to relative './components/SmilesEditor' inside of [project]/
+
+
+Import traces:
+  Client Component Browser:
+    ./components/FilterSidebar.tsx [Client Component Browser]
+    ./components/MofExplorer.tsx [Client Component Browser]
+    ./components/MofExplorer.tsx [Server Component]
+    ./app/(root)/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./components/FilterSidebar.tsx [Client Component SSR]
+    ./components/MofExplorer.tsx [Client Component SSR]
+    ./components/MofExplorer.tsx [Server Component]
+    ./app/(root)/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:04:53.645] Server  ERROR   ⨯ ./components/FilterSidebar.tsx:2:1
+Module not found: Can't resolve '@/components/SmilesEditor'
+  1 | import React from 'react';
+> 2 | import SmilesEditor from '@/components/SmilesEditor';
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  3 | import { TOPOLOGIES, METALS } from '../constants';
+  4 | import { Flame, Droplets, Wind, Thermometer, Clock, RotateCcw, ChevronDown } from 'lucide-react';
+  5 |
+
+Import map: aliased to relative './components/SmilesEditor' inside of [project]/
+
+
+Import traces:
+  Client Component Browser:
+    ./components/FilterSidebar.tsx [Client Component Browser]
+    ./components/MofExplorer.tsx [Client Component Browser]
+    ./components/MofExplorer.tsx [Server Component]
+    ./app/(root)/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./components/FilterSidebar.tsx [Client Component SSR]
+    ./components/MofExplorer.tsx [Client Component SSR]
+    ./components/MofExplorer.tsx [Server Component]
+    ./app/(root)/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:04:53.647] Server  LOG     ✓ Compiled in 90ms
+[00:04:54.409] Browser ERROR   ./components/FilterSidebar.tsx:2:1
+Module not found: Can't resolve '@/components/SmilesEditor'
+  1 | import React from 'react';
+> 2 | import SmilesEditor from '@/components/SmilesEditor';
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  3 | import { TOPOLOGIES, METALS } from '../constants';
+  4 | import { Flame, Droplets, Wind, Thermometer, Clock, RotateCcw, ChevronDown } from 'lucide-react';
+  5 |
+
+Import map: aliased to relative './components/SmilesEditor' inside of [project]/
+
+Import traces:
+  Client Component Browser:
+    ./components/FilterSidebar.tsx [Client Component Browser]
+    ./components/MofExplorer.tsx [Client Component Browser]
+    ./components/MofExplorer.tsx [Server Component]
+    ./app/(root)/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./components/FilterSidebar.tsx [Client Component SSR]
+    ./components/MofExplorer.tsx [Client Component SSR]
+    ./components/MofExplorer.tsx [Server Component]
+    ./app/(root)/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+[00:04:55.981] Server  LOG     ✓ Compiled in 61ms
