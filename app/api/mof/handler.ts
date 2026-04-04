@@ -1,14 +1,22 @@
-import { FILTER_DEFS } from "@/lib/utils";
+import {
+	FILTER_DEFINITIONS,
+	LINKER_SMILES_HASH_PARAM
+} from "@/lib/utils";
 
-export async function mofToMysqlHandler(filters: FilterState, page: number, pageSize = 9, doi?: string) {
+export async function resolveMofInput(filters: FilterState, page: number, pageSize = 9, doi?: string) {
 	const params = new URLSearchParams();
 	params.set("page", String(page))
 	params.set("pageSize", String(pageSize))
 
 	if (doi) params.set("doi", doi);
 
-	// Normalize object entires with FILTER_DEFS
-	for (const [key, def] of Object.entries(FILTER_DEFS)) {
+	// Filter with linker-smiles-hash in DB
+	if (filters.linkerSmilesHash) {
+		params.set(LINKER_SMILES_HASH_PARAM, filters.linkerSmilesHash);
+	}
+
+	// Normalize object entires with FILTER_DEFINITIONS
+	for (const [key, def] of Object.entries(FILTER_DEFINITIONS)) {
 		const value = (filters as any)[key];
 
 		// skip defaults / empties
@@ -24,7 +32,7 @@ export async function mofToMysqlHandler(filters: FilterState, page: number, page
 		}
 	}
 
-	const res = await fetch(`/api/mysql?${params.toString()}`);
+	const res = await fetch(`/api/mof?${params.toString()}`);
 
 	if (!res.ok) {
 		throw new Error(`Failed to fetch MOFs (${res.status})`);

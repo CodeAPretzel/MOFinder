@@ -1,11 +1,76 @@
-"use client"
+"use client";
 
-import React, { useState } from 'react';
-import { Pencil, Hexagon, Eraser, Undo, Redo } from 'lucide-react';
+import React, { useMemo, useState } from "react";
+import { CheckCircle2, Eraser, Hexagon, Pencil, Redo, Search, Undo, XCircle } from "lucide-react";
+import { resolveLinkerInput } from "@/app/api/linker/handler";
 
-const SmilesEditor: React.FC = () => {
-	const [mode, setMode] = useState<'text' | 'draw'>('text');
-	const [smiles, setSmiles] = useState('');
+const SmilesEditor: React.FC<SmilesEditorProps> = ({
+	value,
+	resolvedDisplayName,
+	resolvedSmilesHash,
+	onChange,
+	onResolved,
+	onClear,
+}) => {
+	const [mode, setMode] = useState<"text" | "draw">("text");
+	const [isResolving, setIsResolving] = useState(false);
+	const [error, setError] = useState<string | null>(null);
+	const hasResolvedFilter = Boolean(resolvedSmilesHash);
+
+	const helperText = useMemo(() => {
+		if (hasResolvedFilter && resolvedDisplayName) {
+			return `Filtering by ${resolvedDisplayName}`;
+		}
+		if (hasResolvedFilter) {
+			return "Linker filter is active.";
+		}
+		return "Type a linker or canonical SMILES string.";
+	}, [hasResolvedFilter, resolvedDisplayName]);
+
+	async function handleResolve() {
+		const query = value.trim();
+		if (!query) {
+			setError(null);
+			onClear();
+			return;
+		}
+
+		setIsResolving(true);
+		setError(null);
+		try {
+			const resolved = await resolveLinkerInput(query);
+			if (!resolved.matched || !resolved.canonicalSmilesHash) {
+				onResolved({
+					query,
+					normalizedQuery: resolved.normalizedQuery,
+					inputMode: resolved.inputMode,
+					matched: false,
+					canonicalSmilesHash: null,
+					canonicalSmiles: null,
+					displayName: null,
+					aliases: [],
+					suggestions: resolved.suggestions,
+				});
+				setError(
+					resolved.suggestions.length
+						? "No exact linker match found. Try one of the suggested aliases."
+						: "No linker match found in the linker alias index."
+				);
+				return;
+			}
+
+			onResolved(resolved);
+		} catch (err: any) {
+			setError(err?.message ?? "Failed to resolve linker.");
+		} finally {
+			setIsResolving(false);
+		}
+	}
+
+	function handleReset() {
+		setError(null);
+		onClear();
+	}
 
 	return (
 		<div className="w-full space-y-3">
@@ -15,19 +80,21 @@ const SmilesEditor: React.FC = () => {
 				</label>
 				<div className="flex bg-slate-100 dark:bg-slate-800 rounded-lg p-0.5">
 					<button
-						onClick={() => setMode('text')}
-						className={`px-3 py-1 text-xs font-medium rounded-md transition-all ${mode === 'text'
-								? 'bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 shadow-sm'
-								: 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'
+						type="button"
+						onClick={() => setMode("text")}
+						className={`px-3 py-1 text-xs font-medium rounded-md transition-all ${mode === "text"
+							? "bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 shadow-sm"
+							: "text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300"
 							}`}
 					>
 						SMILES
 					</button>
 					<button
-						onClick={() => setMode('draw')}
-						className={`px-3 py-1 text-xs font-medium rounded-md transition-all flex items-center gap-1 ${mode === 'draw'
-								? 'bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 shadow-sm'
-								: 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'
+						type="button"
+						onClick={() => setMode("draw")}
+						className={`px-3 py-1 text-xs font-medium rounded-md transition-all flex items-center gap-1 ${mode === "draw"
+							? "bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 shadow-sm"
+							: "text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300"
 							}`}
 					>
 						<Pencil size={12} /> Draw
@@ -35,48 +102,78 @@ const SmilesEditor: React.FC = () => {
 				</div>
 			</div>
 
-			{mode === 'text' ? (
-				<div className="relative">
-					<input
-						type="text"
-						value={smiles}
-						onChange={(e) => setSmiles(e.target.value)}
-						placeholder="c1ccccc1 (Benzene)"
-						className="w-full pl-3 pr-10 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:text-slate-100 placeholder-slate-400"
-					/>
-					<div className="absolute right-3 top-2.5 text-slate-400">
-						<Hexagon size={16} />
+			{mode === "text" ? (
+				<div className="space-y-2">
+					<div className="relative">
+						<input
+							type="text"
+							value={value}
+							onChange={(e) => onChange(e.target.value)}
+							onKeyDown={(e) => {
+								if (e.key === "Enter") {
+									e.preventDefault();
+									void handleResolve();
+								}
+							}}
+							onBlur={() => {
+								if (value.trim()) {
+									void handleResolve();
+								}
+							}}
+							placeholder="BDC, terephthalic acid, or c1ccccc1"
+							className="w-full pl-3 pr-10 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:text-slate-100 placeholder-slate-400"
+						/>
+						<div className="absolute right-3 top-2.5 text-slate-400">
+							<Hexagon size={16} />
+						</div>
 					</div>
 				</div>
 			) : (
-				<div className="w-full h-48 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg relative overflow-hidden group cursor-crosshair">
-					<div className="absolute top-2 left-2 flex flex-col gap-2 bg-white/90 dark:bg-slate-800/90 p-1 rounded shadow-sm border border-slate-200 dark:border-slate-600 z-10">
-						<button className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-700 rounded text-slate-600 dark:text-slate-300"><Hexagon size={14} /></button>
-						<button className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-700 rounded text-slate-600 dark:text-slate-300"><Eraser size={14} /></button>
-					</div>
-
-					<div className="w-full h-full flex items-center justify-center">
-						<div className="text-center space-y-2 opacity-40 group-hover:opacity-20 transition-opacity">
-							<Hexagon size={48} className="mx-auto text-slate-300 dark:text-slate-600" />
-							<p className="text-xs text-slate-400 dark:text-slate-500">Interactive Canvas Placeholder</p>
+				<div className="space-y-3">
+					<div className="w-full h-48 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg relative overflow-hidden group cursor-crosshair">
+						<div className="absolute top-2 left-2 flex flex-col gap-2 bg-white/90 dark:bg-slate-800/90 p-1 rounded shadow-sm border border-slate-200 dark:border-slate-600 z-10">
+							<button type="button" className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-700 rounded text-slate-600 dark:text-slate-300"><Hexagon size={14} /></button>
+							<button type="button" className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-700 rounded text-slate-600 dark:text-slate-300"><Eraser size={14} /></button>
 						</div>
 
-						{/* Mock drawn lines */}
-						<svg className="absolute inset-0 w-full h-full pointer-events-none" style={{ opacity: 0.6 }}>
-							<path d="M 100 100 L 140 80 L 180 100 L 180 140 L 140 160 L 100 140 Z" stroke="currentColor" strokeWidth="2" fill="none" className="text-slate-800 dark:text-slate-200" />
-							<line x1="140" y1="80" x2="140" y2="50" stroke="currentColor" strokeWidth="2" className="text-slate-800 dark:text-slate-200" />
-							<text x="135" y="45" className="fill-red-500 text-xs font-bold">OH</text>
-						</svg>
+						<div className="w-full h-full flex items-center justify-center">
+							<div className="text-center space-y-2 opacity-40 group-hover:opacity-20 transition-opacity px-6">
+								<Hexagon size={48} className="mx-auto text-slate-300 dark:text-slate-600" />
+								<p className="text-xs text-slate-400 dark:text-slate-500">
+									PLACEHOLDER WIDGET - FEATURE NOT IMPLEMENTED
+								</p>
+							</div>
+
+							<svg className="absolute inset-0 w-full h-full pointer-events-none" style={{ opacity: 0.6 }}>
+								<path d="M 100 100 L 140 80 L 180 100 L 180 140 L 140 160 L 100 140 Z" stroke="currentColor" strokeWidth="2" fill="none" className="text-slate-800 dark:text-slate-200" />
+								<line x1="140" y1="80" x2="140" y2="50" stroke="currentColor" strokeWidth="2" className="text-slate-800 dark:text-slate-200" />
+								<text x="135" y="45" className="fill-red-500 text-xs font-bold">OH</text>
+							</svg>
+						</div>
+
+						<div className="absolute bottom-2 right-2 flex gap-1">
+							<button type="button" className="p-1 bg-slate-100 dark:bg-slate-800 rounded hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-500"><Undo size={14} /></button>
+							<button type="button" className="p-1 bg-slate-100 dark:bg-slate-800 rounded hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-500"><Redo size={14} /></button>
+						</div>
 					</div>
 
-					<div className="absolute bottom-2 right-2 flex gap-1">
-						<button className="p-1 bg-slate-100 dark:bg-slate-800 rounded hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-500"><Undo size={14} /></button>
-						<button className="p-1 bg-slate-100 dark:bg-slate-800 rounded hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-500"><Redo size={14} /></button>
+					<div className="rounded-lg border border-dashed border-slate-300 dark:border-slate-700 p-3 text-xs text-slate-500 dark:text-slate-400">
+						SAMPLE WIRING POINT
 					</div>
 				</div>
 			)}
+
+			<div className="px-1 py-2 text-xs space-y-3">
+				<div className="flex items-start gap-2 text-slate-600 dark:text-slate-300">
+					{hasResolvedFilter ? <CheckCircle2 size={14} className="mt-0.5 text-emerald-500" /> : <XCircle size={14} className="mt-0.5 text-slate-400" />}
+					<div>
+						<p className="font-medium">{helperText}</p>
+					</div>
+				</div>
+				{error ? <p className="text-rose-600 dark:text-rose-400">{error}</p> : null}
+			</div>
 		</div>
 	);
 };
 
-export default SmilesEditor
+export default SmilesEditor;

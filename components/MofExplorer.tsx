@@ -3,7 +3,8 @@
 import { useEffect, useState } from 'react';
 import { Search, Beaker, LineChart, Sparkles, FlaskConical } from 'lucide-react';
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
-import { mofToMysqlHandler } from '@/app/api/mysql/handler';
+import { resolveMofInput } from '@/app/api/mof/handler';
+import { FILTER_DEFAULT_STATE } from '@/lib/utils';
 import Header from '@/components/Header';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import FilterSidebar from '@/components/FilterSidebar';
@@ -27,20 +28,9 @@ const MofExplorer = () => {
 		setRetryKey((k) => k + 1);
 	}
 
-	const initialFilters = () => ({
-		searchQuery: '',
-		minSurfaceArea: 0,
-		minPoreDiameter: 0,
-		maxTemperature: 0,
-		maxTime: 0,
-		minTgaTemp: 0,
-		waterStable: false,
-		airStable: false,
-		topology: '',
-		metal: '',
+	const [filters, setFilters] = useState<FilterState>({
+		...FILTER_DEFAULT_STATE
 	});
-
-	const [filters, setFilters] = useState<FilterState>(initialFilters);
 	const filtersKey = JSON.stringify(filters)
 	const pageItems = mofData;
 
@@ -80,7 +70,7 @@ const MofExplorer = () => {
 				const effectivePageSize = doi ? 1 : pageSize;
 				const effectivePage = doi ? 1 : page;
 
-				const resp = await mofToMysqlHandler(filters, effectivePage, effectivePageSize, doi);
+				const resp = await resolveMofInput(filters, effectivePage, effectivePageSize, doi);
 				if (!cancelled) {
 					setMofData(resp.data);
 					setTotalCount(resp.total);
@@ -216,7 +206,7 @@ const MofExplorer = () => {
 								</p>
 								<button
 									onClick={() => {
-										setFilters(initialFilters())
+										setFilters({ ...FILTER_DEFAULT_STATE })
 										retryFetch()
 									}}
 									className="mt-6 px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"

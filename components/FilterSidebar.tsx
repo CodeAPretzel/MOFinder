@@ -9,6 +9,24 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({ filters, setFilters, resu
 		setFilters(prev => ({ ...prev, [key]: value }));
 	};
 
+	const applyResolvedLinker = (resolved: LinkerResolveResponse) => {
+		setFilters((prev) => ({
+			...prev,
+			linkerQuery: resolved.query,
+			linkerSmilesHash: resolved.canonicalSmilesHash ?? "",
+			linkerDisplayName: resolved.displayName ?? "",
+		}));
+	};
+
+	const clearLinkerFilter = () => {
+		setFilters((prev) => ({
+			...prev,
+			linkerQuery: "",
+			linkerSmilesHash: "",
+			linkerDisplayName: "",
+		}));
+	};
+
 	const resetFilters = () => {
 		setFilters({
 			searchQuery: filters.searchQuery, // Keep search query
@@ -21,6 +39,9 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({ filters, setFilters, resu
 			airStable: false,
 			topology: '',
 			metal: '',
+			linkerQuery: '',
+			linkerSmilesHash: '',
+			linkerDisplayName: '',
 		});
 	};
 
@@ -38,6 +59,7 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({ filters, setFilters, resu
 					</p>
 				</div>
 				<button
+					type="button"
 					onClick={resetFilters}
 					className="text-xs text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1"
 				>
@@ -46,7 +68,14 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({ filters, setFilters, resu
 			</div>
 
 			{/* Structure Input */}
-			<SmilesEditor />
+			<SmilesEditor
+				value={filters.linkerQuery}
+				resolvedDisplayName={filters.linkerDisplayName}
+				resolvedSmilesHash={filters.linkerSmilesHash}
+				onChange={(value) => handleChange("linkerQuery", value)}
+				onResolved={applyResolvedLinker}
+				onClear={clearLinkerFilter}
+			/>
 
 			<div className="h-px bg-slate-200 dark:bg-slate-700 w-full" />
 
@@ -164,7 +193,7 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({ filters, setFilters, resu
 						</div>
 						<select
 							value={filters.maxTemperature ?? ""}
-							onChange={(e) => 
+							onChange={(e) =>
 								handleChange('maxTemperature', e.target.value === "" ? undefined : Number(e.target.value))
 							}
 							className="w-full p-2 text-sm bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-md focus:ring-1 focus:ring-blue-500 focus:outline-none dark:text-slate-200"
@@ -181,7 +210,7 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({ filters, setFilters, resu
 						</div>
 						<select
 							value={filters.maxTime ?? ""}
-							onChange={(e) => 
+							onChange={(e) =>
 								handleChange('maxTime', e.target.value === "" ? undefined : Number(e.target.value))
 							}
 							className="w-full p-2 text-sm bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-md focus:ring-1 focus:ring-blue-500 focus:outline-none dark:text-slate-200"

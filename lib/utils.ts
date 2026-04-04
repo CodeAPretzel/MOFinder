@@ -1,4 +1,6 @@
-export const FILTER_DEFS = {
+export const LINKER_SMILES_HASH_PARAM = "linkerSmilesHash";
+
+export const FILTER_DEFINITIONS = {
 	// search query across multiple fields (special)
 	searchQuery: { kind: "search", param: "searchQuery" },
 
@@ -17,6 +19,22 @@ export const FILTER_DEFS = {
 	topology: { kind: "stringEq", param: "topology", field: "topology_code" },
 	metal: { kind: "stringEq", param: "metal", field: "metal_1_abbr" },
 } as const satisfies Record<string, FilterKind>;
+
+export const FILTER_DEFAULT_STATE: FilterState = {
+	searchQuery: '',
+	minSurfaceArea: 0,
+	minPoreDiameter: 0,
+	maxTemperature: 0,
+	maxTime: 0,
+	minTgaTemp: 0,
+	waterStable: false,
+	airStable: false,
+	topology: '',
+	metal: '',
+	linkerQuery: '',
+	linkerSmilesHash: '',
+	linkerDisplayName: '',
+};
 
 export const PARSE_NUMBER = (v: string | null): number | null => {
 	if (v == null || v === "") return null;

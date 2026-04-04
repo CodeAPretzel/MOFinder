@@ -1,6 +1,52 @@
 /* eslint-disable no-unused-vars */
 
+declare type AiMetrics = {
+	synthesizability: number;
+	water_stability_score: number;
+	thermal_stability_score: number;
+};
+
+declare type FilterKind =
+	| { kind: "search"; param: string }
+	| { kind: "numberMin" | "numberMax"; param: string; field: string }
+	| { kind: "boolean"; param: string; field: string }
+	| { kind: "stringEq"; param: string; field: string };
+
+
+declare type FilterState = {
+	searchQuery: string;
+	minSurfaceArea: number;
+	minPoreDiameter: number;
+	maxTemperature: number;
+	maxTime: number;
+	minTgaTemp: number;
+	waterStable: boolean;
+	airStable: boolean;
+	topology: string;
+	metal: string;
+	linkerQuery: string;
+	linkerSmilesHash: string;
+	linkerDisplayName: string;
+}
+
+declare type LinkerResolveResponse = {
+	query: string;
+	normalizedQuery: string;
+	inputMode: "smiles" | "alias";
+	matched: boolean;
+	canonicalSmilesHash: string | null;
+	canonicalSmiles: string | null;
+	displayName: string | null;
+	aliases: string[];
+	suggestions: Array<{
+		canonicalSmilesHash: string;
+		canonicalSmiles: string;
+		displayName: string | null;
+	}>;
+};
+
 declare type MofEntry = {
+	id: number;
 	doi: string;
 	mof_name: string;
 	mof_description: string;
@@ -25,29 +71,33 @@ declare type MofEntry = {
 	activation_procedure: string;
 }
 
-declare type SearchParamProps = {
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+
+declare interface SearchParamProps {
 	params: { [key: string]: string };
 	searchParams: { [key: string]: string | string[] | undefined };
 };
 
-declare type FilterState = {
-	searchQuery: string;
-	minSurfaceArea: number;
-	minPoreDiameter: number;
-	maxTemperature: number;
-	maxTime: number;
-	minTgaTemp: number;
-	waterStable: boolean;
-	airStable: boolean;
-	topology: string;
-	metal: string;
-}
+declare interface SmilesEditorProps {
+	value: string;
+	resolvedDisplayName: string;
+	resolvedSmilesHash: string;
+	onChange: (value: string) => void;
+	onResolved: (result: import("@/lib/linkerResolver").LinkerResolveResponse) => void;
+	onClear: () => void;
+};
 
-declare type FilterKind =
-	| { kind: "search"; param: string }
-	| { kind: "numberMin" | "numberMax"; param: string; field: string }
-	| { kind: "boolean"; param: string; field: string }
-	| { kind: "stringEq"; param: string; field: string };
+// declare interface AiAssistantProps {
+//   isOpen: boolean;
+//   onClose: () => void;
+// }
+
+declare interface DetailModalProps {
+	mof: MofEntry;
+	onClose: () => void;
+}
 
 declare interface FilterSidebarProps {
 	filters: FilterState;
@@ -55,9 +105,14 @@ declare interface FilterSidebarProps {
 	resultsCount: number;
 }
 
-declare interface PaginationProps {
-	page: number;
-	totalPages: number;
+declare interface HeaderProps {
+	isDarkMode: boolean;
+	toggleTheme: () => void;
+}
+
+declare interface MofCardProps {
+	mof: MofEntry;
+	onClick: (mof: MofEntry) => void;
 }
 
 declare interface MofPaginationProps {
@@ -69,28 +124,16 @@ declare interface MofPaginationProps {
 	onCardClick: (mof: MofEntry) => void;
 }
 
-declare interface DetailModalProps {
-	mof: MofEntry;
-	onClose: () => void;
+declare interface PaginationProps {
+	page: number;
+	totalPages: number;
 }
 
-declare interface MofCardProps {
-	mof: MofEntry;
-	onClick: (mof: MofEntry) => void;
+declare interface SmilesEditorProps {
+	value: string;
+	resolvedDisplayName: string;
+	resolvedSmilesHash: string;
+	onChange: (value: string) => void;
+	onResolved: (result: import("@/lib/linkerResolver").LinkerResolveResponse) => void;
+	onClear: () => void;
 }
-
-declare interface HeaderProps {
-	isDarkMode: boolean;
-	toggleTheme: () => void;
-}
-
-declare type AiMetrics = {
-	synthesizability: number;
-	water_stability_score: number;
-	thermal_stability_score: number;
-};
-
-// declare interface AiAssistantProps {
-//   isOpen: boolean;
-//   onClose: () => void;
-// }
