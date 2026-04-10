@@ -24,7 +24,7 @@ const SmilesEditor: React.FC<SmilesEditorProps> = ({
 		if (hasResolvedFilter) {
 			return "Linker filter is active.";
 		}
-		return "Type a linker or canonical SMILES string.";
+		return "Type a linker or SMILES string.";
 	}, [hasResolvedFilter, resolvedDisplayName]);
 
 	async function handleResolve() {
