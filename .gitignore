@@ -9,6 +9,9 @@
 # testing
 /coverage
 
+# development
+/scripts
+
 # next.js
 /.next/
 /out/
@@ -32,5 +35,5 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# Logs and Notes
+# logs and notes
 logs

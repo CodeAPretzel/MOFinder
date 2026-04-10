@@ -1,6 +1,6 @@
 import { RowDataPacket } from "mysql2/promise";
 import { NextResponse } from "next/server";
-import { pool } from "@/lib/mysql";
+import { pool } from "@/lib/actions/mysql.actions";
 import {
 	FILTER_DEFINITIONS,
 	LINKER_SMILES_HASH_PARAM,

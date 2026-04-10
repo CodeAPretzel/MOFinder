@@ -120,7 +120,7 @@ const SmilesEditor: React.FC<SmilesEditorProps> = ({
 									void handleResolve();
 								}
 							}}
-							placeholder="BDC, terephthalic acid, or c1ccccc1"
+							placeholder="BDC, terephthalic acid, or Cc1[nH]ccn1"
 							className="w-full pl-3 pr-10 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:text-slate-100 placeholder-slate-400"
 						/>
 						<div className="absolute right-3 top-2.5 text-slate-400">

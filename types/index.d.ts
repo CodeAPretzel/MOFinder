@@ -6,12 +6,24 @@ declare type AiMetrics = {
 	thermal_stability_score: number;
 };
 
+declare type CanonicalizeSmilesResult =
+	| {
+		ok: true;
+		input: string;
+		canonicalSmiles: string;
+		canonicalSmilesHash: string;
+	}
+	| {
+		ok: false;
+		input: string;
+		error: string;
+	};
+
 declare type FilterKind =
 	| { kind: "search"; param: string }
 	| { kind: "numberMin" | "numberMax"; param: string; field: string }
 	| { kind: "boolean"; param: string; field: string }
 	| { kind: "stringEq"; param: string; field: string };
-
 
 declare type FilterState = {
 	searchQuery: string;
@@ -43,6 +55,7 @@ declare type LinkerResolveResponse = {
 		canonicalSmiles: string;
 		displayName: string | null;
 	}>;
+	canonicalizationError?: string | null;
 };
 
 declare type MofEntry = {
@@ -74,20 +87,6 @@ declare type MofEntry = {
 //////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////
-
-declare interface SearchParamProps {
-	params: { [key: string]: string };
-	searchParams: { [key: string]: string | string[] | undefined };
-};
-
-declare interface SmilesEditorProps {
-	value: string;
-	resolvedDisplayName: string;
-	resolvedSmilesHash: string;
-	onChange: (value: string) => void;
-	onResolved: (result: import("@/lib/linkerResolver").LinkerResolveResponse) => void;
-	onClear: () => void;
-};
 
 // declare interface AiAssistantProps {
 //   isOpen: boolean;
@@ -129,6 +128,11 @@ declare interface PaginationProps {
 	totalPages: number;
 }
 
+declare interface SearchParamProps {
+	params: { [key: string]: string };
+	searchParams: { [key: string]: string | string[] | undefined };
+};
+
 declare interface SmilesEditorProps {
 	value: string;
 	resolvedDisplayName: string;
@@ -136,4 +140,4 @@ declare interface SmilesEditorProps {
 	onChange: (value: string) => void;
 	onResolved: (result: import("@/lib/linkerResolver").LinkerResolveResponse) => void;
 	onClear: () => void;
-}
+};
