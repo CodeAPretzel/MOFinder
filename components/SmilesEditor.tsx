@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useMemo, useState } from "react";
-import { CheckCircle2, Eraser, Hexagon, Pencil, Redo, Search, Undo, XCircle } from "lucide-react";
+import { CheckCircle2, Eraser, Hexagon, Pencil, Redo, Undo, XCircle } from "lucide-react";
 import { resolveLinkerInput } from "@/app/api/linker/handler";
 
 const SmilesEditor: React.FC<SmilesEditorProps> = ({
@@ -27,7 +27,7 @@ const SmilesEditor: React.FC<SmilesEditorProps> = ({
 		return "Type a linker or SMILES string.";
 	}, [hasResolvedFilter, resolvedDisplayName]);
 
-	async function handleResolve() {
+	const handleResolve = async () => {
 		const query = value.trim();
 		if (!query) {
 			setError(null);
@@ -67,6 +67,7 @@ const SmilesEditor: React.FC<SmilesEditorProps> = ({
 		}
 	}
 
+	// TODO: implement
 	function handleReset() {
 		setError(null);
 		onClear();

@@ -1,40 +1,26 @@
+// lib/actions/rdkit.server.ts
+import "server-only";
 import path from "path";
 import type { RDKitModule, RDKitLoader } from "@rdkit/rdkit";
 
 async function loadInitRDKitModule(): Promise<RDKitLoader> {
-	// Try the package root first.
-	try {
-		const mod = await import("@rdkit/rdkit");
-		const candidate =
-			(mod as unknown as { default?: RDKitLoader }).default ??
-			((mod as unknown as { initRDKitModule?: RDKitLoader }).initRDKitModule);
-
-		if (typeof candidate === "function") {
-			return candidate;
-		}
-	} catch {
-		// fall through
-	}
-
-	const distMod = await import("@rdkit/rdkit"); // Fallback: load the dist asset --> @rdkit/rdkit/dist/RDKit_minimal.js (errors out)
+	const mod = await import("@rdkit/rdkit");
 	const candidate =
-		(distMod as unknown as { default?: RDKitLoader }).default ??
-		((globalThis as { initRDKitModule?: RDKitLoader }).initRDKitModule);
+		(mod as any).default ?? (mod as any).initRDKitModule;
 
-	if (typeof candidate === "function") {
-		return candidate;
+	if (typeof candidate !== "function") {
+		throw new Error("Could not load RDKit init function");
 	}
 
-	throw new Error(
-		"Could not load RDKit init function from @rdkit/rdkit or RDKit_minimal.js"
-	);
+	return candidate;
 }
 
-export async function getRDKit(): Promise<RDKitModule> {
-	if (!globalThis.__rdkitPromise) {
-		globalThis.__rdkitPromise = (async () => {
-			const initRDKitModule = await loadInitRDKitModule();
+export async function getServerRDKit(): Promise<RDKitModule> {
+	const g = globalThis as any;
 
+	if (!g.__rdkitServerPromise) {
+		g.__rdkitServerPromise = (async () => {
+			const initRDKitModule = await loadInitRDKitModule();
 			const wasmPath = path.join(
 				process.cwd(),
 				"node_modules",
@@ -44,11 +30,11 @@ export async function getRDKit(): Promise<RDKitModule> {
 				"RDKit_minimal.wasm"
 			);
 
-			return await initRDKitModule({
+			return initRDKitModule({
 				locateFile: () => wasmPath,
 			});
 		})();
 	}
 
-	return globalThis.__rdkitPromise;
+	return g.__rdkitServerPromise;
 }

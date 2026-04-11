@@ -1,5 +1,5 @@
 import { createHash } from "crypto";
-import { getRDKit } from "@/lib/actions/rdkit.actions";
+import { getServerRDKit } from "@/lib/actions/rdkit.actions";
 
 function sha256(value: string): string {
 	return createHash("sha256").update(value).digest("hex");
@@ -31,7 +31,7 @@ export async function canonicalizeSmiles(
 		};
 	}
 
-	const RDKit = await getRDKit();
+	const RDKit = await getServerRDKit();
 	const mol = RDKit.get_mol(smiles);
 
 	if (!mol) {

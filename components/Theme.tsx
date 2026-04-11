@@ -30,4 +30,4 @@ const Theme = () => {
 	return { isDarkMode, toggleTheme };
 }
 
-export default Theme
+export default Theme;
