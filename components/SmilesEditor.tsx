@@ -1,8 +1,9 @@
 "use client";
 
 import React, { useMemo, useState } from "react";
-import { CheckCircle2, Eraser, Hexagon, Pencil, Redo, Undo, XCircle } from "lucide-react";
+import { CheckCircle2, Pencil, Hexagon, XCircle } from "lucide-react";
 import { resolveLinkerInput } from "@/app/api/linker/handler";
+import JSMEEditor from "@/components/JsmeEditor";
 
 const SmilesEditor: React.FC<SmilesEditorProps> = ({
 	value,
@@ -15,6 +16,9 @@ const SmilesEditor: React.FC<SmilesEditorProps> = ({
 	const [mode, setMode] = useState<"text" | "draw">("text");
 	const [isResolving, setIsResolving] = useState(false);
 	const [error, setError] = useState<string | null>(null);
+	const [drawnSmiles, setDrawnSmiles] = useState("");
+	const [drawResetKey, setDrawResetKey] = useState(0);
+
 	const hasResolvedFilter = Boolean(resolvedSmilesHash);
 
 	const helperText = useMemo(() => {
@@ -24,11 +28,18 @@ const SmilesEditor: React.FC<SmilesEditorProps> = ({
 		if (hasResolvedFilter) {
 			return "Linker filter is active.";
 		}
-		return "Type a linker or SMILES string.";
-	}, [hasResolvedFilter, resolvedDisplayName]);
+		if (mode === "draw" && drawnSmiles.trim()) {
+			return "Structure captured. Click “Use structure” to apply the filter.";
+		}
+		if (mode === "draw") {
+			return "Draw a linker structure, then apply it.";
+		}
+		return "Type a linker name or SMILES string.";
+	}, [hasResolvedFilter, resolvedDisplayName, mode, drawnSmiles]);
 
-	const handleResolve = async () => {
-		const query = value.trim();
+	const resolveAndApply = async (rawQuery: string) => {
+		const query = rawQuery.trim();
+
 		if (!query) {
 			setError(null);
 			onClear();
@@ -37,8 +48,10 @@ const SmilesEditor: React.FC<SmilesEditorProps> = ({
 
 		setIsResolving(true);
 		setError(null);
+
 		try {
 			const resolved = await resolveLinkerInput(query);
+
 			if (!resolved.matched || !resolved.canonicalSmilesHash) {
 				onResolved({
 					query,
@@ -46,11 +59,12 @@ const SmilesEditor: React.FC<SmilesEditorProps> = ({
 					inputMode: resolved.inputMode,
 					matched: false,
 					canonicalSmilesHash: null,
-					canonicalSmiles: null,
+					canonicalSmiles: resolved.canonicalSmiles ?? null,
 					displayName: null,
 					aliases: [],
 					suggestions: resolved.suggestions,
 				});
+
 				setError(
 					resolved.suggestions.length
 						? "No exact linker match found. Try one of the suggested aliases."
@@ -59,19 +73,31 @@ const SmilesEditor: React.FC<SmilesEditorProps> = ({
 				return;
 			}
 
+			onChange(resolved.canonicalSmiles ?? query);
 			onResolved(resolved);
+			setError(null);
 		} catch (err: any) {
 			setError(err?.message ?? "Failed to resolve linker.");
 		} finally {
 			setIsResolving(false);
 		}
-	}
+	};
 
-	// TODO: implement
-	function handleReset() {
+	const handleTextResolve = async () => {
+		await resolveAndApply(value);
+	};
+
+	const handleDrawResolve = async () => {
+		await resolveAndApply(drawnSmiles);
+	};
+
+	const handleReset = () => {
 		setError(null);
+		setDrawnSmiles("");
+		setDrawResetKey((prev) => prev + 1);
+		onChange("");
 		onClear();
-	}
+	};
 
 	return (
 		<div className="w-full space-y-3">
@@ -79,23 +105,25 @@ const SmilesEditor: React.FC<SmilesEditorProps> = ({
 				<label className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
 					Linker Structure
 				</label>
+
 				<div className="flex bg-slate-100 dark:bg-slate-800 rounded-lg p-0.5">
 					<button
 						type="button"
 						onClick={() => setMode("text")}
 						className={`px-3 py-1 text-xs font-medium rounded-md transition-all ${mode === "text"
-							? "bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 shadow-sm"
-							: "text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300"
+								? "bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 shadow-sm"
+								: "text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300"
 							}`}
 					>
 						SMILES
 					</button>
+
 					<button
 						type="button"
 						onClick={() => setMode("draw")}
 						className={`px-3 py-1 text-xs font-medium rounded-md transition-all flex items-center gap-1 ${mode === "draw"
-							? "bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 shadow-sm"
-							: "text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300"
+								? "bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 shadow-sm"
+								: "text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300"
 							}`}
 					>
 						<Pencil size={12} /> Draw
@@ -113,12 +141,12 @@ const SmilesEditor: React.FC<SmilesEditorProps> = ({
 							onKeyDown={(e) => {
 								if (e.key === "Enter") {
 									e.preventDefault();
-									void handleResolve();
+									void handleTextResolve();
 								}
 							}}
 							onBlur={() => {
 								if (value.trim()) {
-									void handleResolve();
+									void handleTextResolve();
 								}
 							}}
 							placeholder="BDC, terephthalic acid, or Cc1[nH]ccn1"
@@ -131,46 +159,54 @@ const SmilesEditor: React.FC<SmilesEditorProps> = ({
 				</div>
 			) : (
 				<div className="space-y-3">
-					<div className="w-full h-48 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg relative overflow-hidden group cursor-crosshair">
-						<div className="absolute top-2 left-2 flex flex-col gap-2 bg-white/90 dark:bg-slate-800/90 p-1 rounded shadow-sm border border-slate-200 dark:border-slate-600 z-10">
-							<button type="button" className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-700 rounded text-slate-600 dark:text-slate-300"><Hexagon size={14} /></button>
-							<button type="button" className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-700 rounded text-slate-600 dark:text-slate-300"><Eraser size={14} /></button>
+					<JSMEEditor
+						key={drawResetKey}
+						initialSmiles={value}
+						onSmilesChange={setDrawnSmiles}
+					/>
+
+					<div className="rounded-lg border border-dashed border-slate-300 dark:border-slate-700 p-3 text-xs text-slate-500 dark:text-slate-400 space-y-2">
+						<div className="font-semibold text-slate-600 dark:text-slate-300">
+							Generated SMILES
 						</div>
-
-						<div className="w-full h-full flex items-center justify-center">
-							<div className="text-center space-y-2 opacity-40 group-hover:opacity-20 transition-opacity px-6">
-								<Hexagon size={48} className="mx-auto text-slate-300 dark:text-slate-600" />
-								<p className="text-xs text-slate-400 dark:text-slate-500">
-									PLACEHOLDER WIDGET - FEATURE NOT IMPLEMENTED
-								</p>
-							</div>
-
-							<svg className="absolute inset-0 w-full h-full pointer-events-none" style={{ opacity: 0.6 }}>
-								<path d="M 100 100 L 140 80 L 180 100 L 180 140 L 140 160 L 100 140 Z" stroke="currentColor" strokeWidth="2" fill="none" className="text-slate-800 dark:text-slate-200" />
-								<line x1="140" y1="80" x2="140" y2="50" stroke="currentColor" strokeWidth="2" className="text-slate-800 dark:text-slate-200" />
-								<text x="135" y="45" className="fill-red-500 text-xs font-bold">OH</text>
-							</svg>
-						</div>
-
-						<div className="absolute bottom-2 right-2 flex gap-1">
-							<button type="button" className="p-1 bg-slate-100 dark:bg-slate-800 rounded hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-500"><Undo size={14} /></button>
-							<button type="button" className="p-1 bg-slate-100 dark:bg-slate-800 rounded hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-500"><Redo size={14} /></button>
+						<div className="break-all font-mono text-[11px] min-h-[1.0rem]">
+							{drawnSmiles || "Draw a structure to generate SMILES."}
 						</div>
 					</div>
 
-					<div className="rounded-lg border border-dashed border-slate-300 dark:border-slate-700 p-3 text-xs text-slate-500 dark:text-slate-400">
-						SAMPLE WIRING POINT
+					<div className="flex gap-2">
+						<button
+							type="button"
+							onClick={() => void handleDrawResolve()}
+							disabled={isResolving || !drawnSmiles.trim()}
+							className="flex-1 px-3 py-2 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+						>
+							{isResolving ? "Applying..." : "Use structure"}
+						</button>
+
+						<button
+							type="button"
+							onClick={handleReset}
+							className="px-3 py-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+						>
+							Clear
+						</button>
 					</div>
 				</div>
 			)}
 
 			<div className="px-1 py-2 text-xs space-y-3">
 				<div className="flex items-start gap-2 text-slate-600 dark:text-slate-300">
-					{hasResolvedFilter ? <CheckCircle2 size={14} className="mt-0.5 text-emerald-500" /> : <XCircle size={14} className="mt-0.5 text-slate-400" />}
+					{hasResolvedFilter ? (
+						<CheckCircle2 size={14} className="mt-0.5 text-emerald-500" />
+					) : (
+						<XCircle size={14} className="mt-0.5 text-slate-400" />
+					)}
 					<div>
 						<p className="font-medium">{helperText}</p>
 					</div>
 				</div>
+
 				{error ? <p className="text-rose-600 dark:text-rose-400">{error}</p> : null}
 			</div>
 		</div>

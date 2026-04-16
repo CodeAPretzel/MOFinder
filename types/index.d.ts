@@ -41,6 +41,35 @@ declare type FilterState = {
 	linkerDisplayName: string;
 }
 
+declare type JSAppletNamespace = {
+	JSME: new (
+		containerId: string,
+		width: string,
+		height: string,
+		params?: Record<string, string>
+	) => JSMEInstance;
+}
+
+declare type JSMEEvent = {
+	src: JSMEInstance;
+	action?: string;
+	atom?: number;
+	bond?: number;
+	molecule?: number;
+	argument?: unknown;
+}
+
+declare type JSMEInstance = {
+	smiles: () => string;
+	setCallBack?: (
+		callbackName: string,
+		callbackFn: (event: JSMEEvent) => void
+	) => void;
+	setMolecularAreaScale?: (scale: number) => void;
+	setMenuScale?: (scale: number) => void;
+	repaint?: () => void;
+};
+
 declare type LinkerResolveResponse = {
 	query: string;
 	normalizedQuery: string;
@@ -107,6 +136,12 @@ declare interface FilterSidebarProps {
 declare interface HeaderProps {
 	isDarkMode: boolean;
 	toggleTheme: () => void;
+}
+
+declare interface JSMEEditorProps {
+	initialSmiles?: string;
+	onSmilesChange?: (smiles: string) => void;
+	className?: string;
 }
 
 declare interface MofCardProps {

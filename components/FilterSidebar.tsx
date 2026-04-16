@@ -1,6 +1,6 @@
 import React from 'react';
 import SmilesEditor from '@/components/SmilesEditor';
-import { TOPOLOGIES, METALS } from '../constants';
+import { TOPOLOGIES, METALS } from '@/constants';
 import { Flame, Droplets, Wind, Thermometer, Clock, RotateCcw, ChevronDown } from 'lucide-react';
 
 const FilterSidebar: React.FC<FilterSidebarProps> = ({ filters, setFilters, resultsCount }) => {

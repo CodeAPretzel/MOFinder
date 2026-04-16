@@ -10,7 +10,7 @@ import LoadingSpinner from '@/components/LoadingSpinner';
 import FilterSidebar from '@/components/FilterSidebar';
 import DetailModal from '@/components/DetailModal';
 import Theme from '@/components/Theme';
-import MofPagination from './MofPagination';
+import MofPagination from '@/components/MofPagination';
 
 const MofExplorer = () => {
 	const { isDarkMode, toggleTheme } = Theme();

@@ -28,7 +28,7 @@ function loadScript(src: string): Promise<void> {
 export async function getClientRDKit(): Promise<RDKitModule> {
 	if (!window.__rdkitBrowserPromise) {
 		window.__rdkitBrowserPromise = (async () => {
-			await loadScript("/binaries/RDKit_minimal.js");
+			await loadScript("/binaries/rdkit/RDKit_minimal.js");
 
 			const init = (globalThis as { initRDKitModule?: unknown }).initRDKitModule;
 			if (typeof init !== "function") {
@@ -36,7 +36,7 @@ export async function getClientRDKit(): Promise<RDKitModule> {
 			}
 
 			return init({
-				locateFile: () => `/binaries/RDKit_minimal.wasm`,
+				locateFile: () => `/binaries/rdkit/RDKit_minimal.wasm`,
 			});
 		})();
 	}
