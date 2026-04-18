@@ -1,19 +1,14 @@
 #!/usr/bin/env python3
 """
-Preprocess MOF linker data and load it into MySQL.
+Preprocess MOF linker data and load it into MySQL, including a searchable
+linker_alias_lookup table for fast linker abbreviation / alias resolution.
+
+This is a drop-in successor to preprocess-mof-linkers.py.
 
 Supports three source modes:
-
-1) source=csv
-   Use the raw preprocessing CSV as the authoritative linker source.
-   If the CSV does not contain a numeric MOF id, the script can look up
-   mof_entry.id by DOI and/or MOF name before inserting into mof_linkers.
-
-2) source=mysql
-   Read directly from an existing mof_entry table for a one-time backfill.
-
-3) source=json
-   Kept for compatibility/debugging with app-shaped JSON payloads.
+  1) source=csv   - use raw preprocessing CSV as linker source
+  2) source=mysql - backfill directly from existing mof_entry rows
+  3) source=json  - compatibility/debugging only
 """
 
 from __future__ import annotations
@@ -25,11 +20,12 @@ import hashlib
 import json
 import os
 import re
-import sys
 import unicodedata
 from collections import defaultdict
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Sequence, Tuple
+from rdkit import Chem # type: ignore
+from rdkit.Chem.MolStandardize import rdMolStandardize # type: ignore
 
 LINKER_FIELD_RE = re.compile(r"^linker_(\d+)$", re.IGNORECASE)
 LINKER_ABBR_FIELD_RE = re.compile(r"^linker_(\d+)_abbr$", re.IGNORECASE)
@@ -59,6 +55,13 @@ PLACEHOLDER_STRINGS = {
 	"nan",
 	"not available",
 	"unknown",
+}
+
+ALIAS_SOURCE_PRIORITY = {
+	"lookup_display_name": 0,
+	"lookup_alias": 1,
+	"mof_linker_abbr": 2,
+	"mof_linker_name": 3,
 }
 
 
@@ -131,12 +134,27 @@ def clean_linker_value(value: Any) -> Optional[str]:
 	return text
 
 
-def normalize_smiles(smiles: Any) -> str:
+def canonicalize_smiles(smiles: Any) -> str:
 	if smiles is None:
 		return ""
+
 	text = str(smiles).strip()
 	text = WHITESPACE_RE.sub("", text)
-	return text
+	if not text:
+		return ""
+
+	mol = Chem.MolFromSmiles(text)
+	if mol is None:
+		return ""
+
+	mol = rdMolStandardize.Cleanup(mol)
+
+	return Chem.MolToSmiles(
+		mol,
+		canonical=True,
+		isomericSmiles=True,
+		kekuleSmiles=False,
+	)
 
 
 def smiles_hash(smiles: str) -> str:
@@ -239,7 +257,7 @@ def build_alias_maps(
 
 	for alias, smiles in name2smiles_raw.items():
 		norm_alias = normalize_alias(alias)
-		norm_smiles = normalize_smiles(smiles)
+		norm_smiles = canonicalize_smiles(smiles)
 		if not norm_alias or not norm_smiles:
 			continue
 		existing = alias_to_smiles.get(norm_alias)
@@ -249,7 +267,7 @@ def build_alias_maps(
 		smiles_to_aliases[norm_smiles].append(str(alias).strip())
 
 	for smiles, aliases in smiles2name_raw.items():
-		norm_smiles = normalize_smiles(smiles)
+		norm_smiles = canonicalize_smiles(smiles)
 		if not norm_smiles:
 			continue
 		for alias in aliases or []:
@@ -451,10 +469,59 @@ def build_outputs(
 	records: Sequence[Dict[str, Any]],
 	alias_to_smiles: Dict[str, str],
 	smiles_to_aliases: Dict[str, List[str]],
-) -> Tuple[List[Dict[str, Any]], List[Dict[str, Any]], List[Dict[str, Any]]]:
+) -> Tuple[List[Dict[str, Any]], List[Dict[str, Any]], List[Dict[str, Any]], List[Dict[str, Any]], List[Dict[str, Any]]]:
 	mof_linkers_rows: List[Dict[str, Any]] = []
 	unresolved_rows: List[Dict[str, Any]] = []
 	linker_lookup_by_hash: Dict[str, Dict[str, Any]] = {}
+	alias_rows_by_key: Dict[Tuple[str, str], Dict[str, Any]] = {}
+	alias_collisions: List[Dict[str, Any]] = []
+
+	def consider_alias(alias_raw: Optional[str], canonical_hash: Optional[str], source: str) -> None:
+		if not alias_raw or not canonical_hash:
+			return
+		alias_normalized = normalize_alias(alias_raw)
+		if not alias_normalized:
+			return
+		key = (alias_normalized, canonical_hash)
+		candidate = {
+			"alias_normalized": alias_normalized,
+			"canonical_smiles_hash": canonical_hash,
+			"alias_raw": str(alias_raw).strip(),
+			"alias_source": source,
+		}
+		existing = alias_rows_by_key.get(key)
+		if existing is None:
+			alias_rows_by_key[key] = candidate
+			return
+		old_pri = ALIAS_SOURCE_PRIORITY.get(existing["alias_source"], 999)
+		new_pri = ALIAS_SOURCE_PRIORITY.get(source, 999)
+		if new_pri < old_pri or (
+			new_pri == old_pri and len(candidate["alias_raw"]) < len(existing["alias_raw"])
+		):
+			alias_collisions.append(
+				{
+					"alias_normalized": alias_normalized,
+					"canonical_smiles_hash": canonical_hash,
+					"kept_alias_raw": candidate["alias_raw"],
+					"kept_alias_source": source,
+					"discarded_alias_raw": existing["alias_raw"],
+					"discarded_alias_source": existing["alias_source"],
+					"reason": "priority_replaced",
+				}
+			)
+			alias_rows_by_key[key] = candidate
+		else:
+			alias_collisions.append(
+				{
+					"alias_normalized": alias_normalized,
+					"canonical_smiles_hash": canonical_hash,
+					"kept_alias_raw": existing["alias_raw"],
+					"kept_alias_source": existing["alias_source"],
+					"discarded_alias_raw": candidate["alias_raw"],
+					"discarded_alias_source": source,
+					"reason": "duplicate_ignored",
+				}
+			)
 
 	for record in records:
 		mof_id = record.get("id")
@@ -476,21 +543,39 @@ def build_outputs(
 				unresolved_rows.append(row)
 				continue
 
-			linker_lookup_by_hash[resolved["canonical_smiles_hash"]] = {
-				"canonical_smiles_hash": resolved["canonical_smiles_hash"],
+			canonical_hash = resolved["canonical_smiles_hash"]
+			lookup_aliases = json.loads(resolved["aliases_json"])
+
+			linker_lookup_by_hash[canonical_hash] = {
+				"canonical_smiles_hash": canonical_hash,
 				"canonical_smiles": resolved["canonical_smiles"],
 				"display_name": resolved["display_name"],
 				"aliases_json": resolved["aliases_json"],
 			}
 
+			consider_alias(resolved["display_name"], canonical_hash, "lookup_display_name")
+			for alias in lookup_aliases:
+				consider_alias(alias, canonical_hash, "lookup_alias")
+			consider_alias(linker_name, canonical_hash, "mof_linker_name")
+			consider_alias(linker_abbr, canonical_hash, "mof_linker_abbr")
+
 	linker_lookup_rows = sorted(
 		linker_lookup_by_hash.values(),
 		key=lambda row: ((row["display_name"] or ""), row["canonical_smiles_hash"]),
 	)
-	return mof_linkers_rows, linker_lookup_rows, unresolved_rows
+	alias_rows = sorted(
+		alias_rows_by_key.values(),
+		key=lambda row: (row["alias_normalized"], row["canonical_smiles_hash"]),
+	)
+	return mof_linkers_rows, linker_lookup_rows, alias_rows, unresolved_rows, alias_collisions
 
 
-def create_tables(db: DBClient, mof_linkers_table: str, linker_lookup_table: str) -> None:
+def create_tables(
+	db: DBClient,
+	mof_linkers_table: str,
+	linker_lookup_table: str,
+	linker_alias_lookup_table: str,
+) -> None:
 	ddl_lookup = f"""
 	CREATE TABLE IF NOT EXISTS `{linker_lookup_table}` (
 	  canonical_smiles_hash VARCHAR(64) PRIMARY KEY,
@@ -523,18 +608,42 @@ def create_tables(db: DBClient, mof_linkers_table: str, linker_lookup_table: str
 	) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 	"""
 
+	ddl_alias_lookup = f"""
+	CREATE TABLE IF NOT EXISTS `{linker_alias_lookup_table}` (
+	  alias_normalized VARCHAR(255) NOT NULL,
+	  canonical_smiles_hash VARCHAR(64) NOT NULL,
+	  alias_raw VARCHAR(255) NOT NULL,
+	  alias_source ENUM('lookup_display_name','lookup_alias','mof_linker_name','mof_linker_abbr') NOT NULL,
+	  PRIMARY KEY (alias_normalized, canonical_smiles_hash),
+	  KEY idx_linker_alias_hash (canonical_smiles_hash),
+	  KEY idx_linker_alias_source (alias_source),
+	  CONSTRAINT fk_{linker_alias_lookup_table}_lookup
+		FOREIGN KEY (canonical_smiles_hash)
+		REFERENCES `{linker_lookup_table}` (canonical_smiles_hash)
+		ON DELETE CASCADE
+		ON UPDATE CASCADE
+	) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+	"""
+
 	cur = db.cursor()
 	try:
 		cur.execute(ddl_lookup)
 		cur.execute(ddl_mof_linkers)
+		cur.execute(ddl_alias_lookup)
 	finally:
 		cur.close()
 
 
-def clear_tables(db: DBClient, mof_linkers_table: str, linker_lookup_table: str) -> None:
+def clear_tables(
+	db: DBClient,
+	mof_linkers_table: str,
+	linker_lookup_table: str,
+	linker_alias_lookup_table: str,
+) -> None:
 	cur = db.cursor()
 	try:
 		cur.execute("SET FOREIGN_KEY_CHECKS = 0")
+		cur.execute(f"TRUNCATE TABLE `{linker_alias_lookup_table}`")
 		cur.execute(f"TRUNCATE TABLE `{mof_linkers_table}`")
 		cur.execute(f"TRUNCATE TABLE `{linker_lookup_table}`")
 		cur.execute("SET FOREIGN_KEY_CHECKS = 1")
@@ -633,9 +742,39 @@ def insert_mof_linker_rows(db: DBClient, table_name: str, rows: Sequence[Dict[st
 		cur.close()
 
 
+def insert_alias_rows(db: DBClient, table_name: str, rows: Sequence[Dict[str, Any]]) -> None:
+	if not rows:
+		return
+	sql = f"""
+	INSERT INTO `{table_name}` (
+	  alias_normalized,
+	  canonical_smiles_hash,
+	  alias_raw,
+	  alias_source
+	) VALUES (%s, %s, %s, %s)
+	ON DUPLICATE KEY UPDATE
+	  alias_raw = VALUES(alias_raw),
+	  alias_source = VALUES(alias_source)
+	"""
+	payload = [
+		(
+			row["alias_normalized"],
+			row["canonical_smiles_hash"],
+			row["alias_raw"],
+			row["alias_source"],
+		)
+		for row in rows
+	]
+	cur = db.cursor()
+	try:
+		cur.executemany(sql, payload)
+	finally:
+		cur.close()
+
+
 def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
 	preprocess = Path.home() / "preprocess"
-    
+
 	parser = argparse.ArgumentParser(description=__doc__)
 	parser.add_argument("--source", default="mysql", choices=["csv", "mysql", "json"])
 	parser.add_argument("--source-csv", type=Path, help="Path to raw CSV input when --source=csv")
@@ -643,8 +782,8 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
 	parser.add_argument("--source-table", default="mof_entry", help="MySQL source table when --source=mysql")
 	parser.add_argument("--source-where", help="Optional SQL WHERE clause for source=mysql")
 
-	parser.add_argument("--name2smiles", default=preprocess / "name2smiles_1222.json", type=Path, help="Path to name->SMILES JSON")
-	parser.add_argument("--smiles2name", default=preprocess / "smiles2name_1222.json", type=Path, help="Path to SMILES->names JSON")
+	parser.add_argument("--name2smiles", default=preprocess / "name2smiles_1222.json", type=Path)
+	parser.add_argument("--smiles2name", default=preprocess / "smiles2name_1222.json", type=Path)
 
 	parser.add_argument("--mysql-host", default=os.environ.get("MYSQL_HOST", "127.0.0.1"))
 	parser.add_argument("--mysql-port", type=int, default=int(os.environ.get("MYSQL_PORT", "3306")))
@@ -652,19 +791,12 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
 	parser.add_argument("--mysql-password", default=os.environ.get("MYSQL_PASSWORD"))
 	parser.add_argument("--mysql-database", default=os.environ.get("MYSQL_DATABASE", "mof_app"))
 
-	parser.add_argument(
-		"--mof-id-lookup-table",
-		default="mof_entry",
-		help="Table used to map CSV/JSON rows back to mof_entry.id",
-	)
-	parser.add_argument(
-		"--skip-missing-mof-id",
-		action="store_true",
-		help="Skip rows that cannot be matched to a MOF id",
-	)
+	parser.add_argument("--mof-id-lookup-table", default="mof_entry")
+	parser.add_argument("--skip-missing-mof-id", action="store_true")
 
 	parser.add_argument("--mof-linkers-table", default="mof_linkers")
 	parser.add_argument("--linker-lookup-table", default="linker_lookup")
+	parser.add_argument("--linker-alias-lookup-table", default="linker_alias_lookup")
 	parser.add_argument("--create-tables", action="store_true")
 	parser.add_argument("--truncate-first", action="store_true")
 	parser.add_argument("--out-dir", type=Path, help="Optional directory for debug CSV outputs")
@@ -703,27 +835,34 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
 		elif args.source == "csv":
 			raw_records = load_records_from_csv(args.source_csv)
 			id_lookup = build_mof_id_lookup(db, args.mof_id_lookup_table)
-			records, skipped_source_records = attach_mof_ids(
-				raw_records, id_lookup, args.skip_missing_mof_id
-			)
+			records, skipped_source_records = attach_mof_ids(raw_records, id_lookup, args.skip_missing_mof_id)
 		else:
 			raw_records = load_records_from_json(args.source_json)
 			id_lookup = build_mof_id_lookup(db, args.mof_id_lookup_table)
-			records, skipped_source_records = attach_mof_ids(
-				raw_records, id_lookup, args.skip_missing_mof_id
-			)
+			records, skipped_source_records = attach_mof_ids(raw_records, id_lookup, args.skip_missing_mof_id)
 
-		mof_linkers_rows, linker_lookup_rows, unresolved_rows = build_outputs(
+		mof_linkers_rows, linker_lookup_rows, alias_rows, unresolved_rows, alias_collisions = build_outputs(
 			records, alias_to_smiles, smiles_to_aliases
 		)
 
 		if args.create_tables:
-			create_tables(db, args.mof_linkers_table, args.linker_lookup_table)
+			create_tables(
+				db,
+				args.mof_linkers_table,
+				args.linker_lookup_table,
+				args.linker_alias_lookup_table,
+			)
 		if args.truncate_first:
-			clear_tables(db, args.mof_linkers_table, args.linker_lookup_table)
+			clear_tables(
+				db,
+				args.mof_linkers_table,
+				args.linker_lookup_table,
+				args.linker_alias_lookup_table,
+			)
 
 		insert_linker_lookup_rows(db, args.linker_lookup_table, linker_lookup_rows)
 		insert_mof_linker_rows(db, args.mof_linkers_table, mof_linkers_rows)
+		insert_alias_rows(db, args.linker_alias_lookup_table, alias_rows)
 		db.commit()
 	except Exception:
 		db.rollback()
@@ -735,7 +874,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
 		write_csv(
 			args.out_dir / "mof_linkers.csv",
 			mof_linkers_rows,
-			fieldnames=[
+			[
 				"mof_id",
 				"linker_position",
 				"linker_name",
@@ -752,7 +891,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
 		write_csv(
 			args.out_dir / "linker_lookup.csv",
 			linker_lookup_rows,
-			fieldnames=[
+			[
 				"canonical_smiles_hash",
 				"canonical_smiles",
 				"display_name",
@@ -760,9 +899,19 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
 			],
 		)
 		write_csv(
+			args.out_dir / "linker_alias_lookup.csv",
+			alias_rows,
+			[
+				"alias_normalized",
+				"canonical_smiles_hash",
+				"alias_raw",
+				"alias_source",
+			],
+		)
+		write_csv(
 			args.out_dir / "unresolved_linkers.csv",
 			unresolved_rows,
-			fieldnames=[
+			[
 				"mof_id",
 				"linker_position",
 				"linker_name",
@@ -776,7 +925,21 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
 			write_csv(
 				args.out_dir / "skipped_source_records.csv",
 				skipped_source_records,
-				fieldnames=sorted({key for row in skipped_source_records for key in row.keys()}),
+				sorted({key for row in skipped_source_records for key in row.keys()}),
+			)
+		if alias_collisions:
+			write_csv(
+				args.out_dir / "alias_collisions.csv",
+				alias_collisions,
+				[
+					"alias_normalized",
+					"canonical_smiles_hash",
+					"kept_alias_raw",
+					"kept_alias_source",
+					"discarded_alias_raw",
+					"discarded_alias_source",
+					"reason",
+				],
 			)
 
 	total = len(mof_linkers_rows)
@@ -792,7 +955,12 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
 	print(f"Ambiguous: {ambiguous}")
 	print(f"Unresolved: {unresolved}")
 	print(f"Lookup rows upserted: {len(linker_lookup_rows)}")
-	print(f"Target tables: {args.linker_lookup_table}, {args.mof_linkers_table}")
+	print(f"Alias rows upserted: {len(alias_rows)}")
+	print(f"Alias collisions collapsed during build: {len(alias_collisions)}")
+	print(
+		"Target tables: "
+		f"{args.linker_lookup_table}, {args.mof_linkers_table}, {args.linker_alias_lookup_table}"
+	)
 	if args.out_dir:
 		print(f"Debug CSV output directory: {args.out_dir}")
 	return 0
