@@ -8,7 +8,7 @@ import pandas as pd
 import mysql.connector
 
 
-MOFS_PATH = "/home/zhenglab/preprocess/mofs.csv"
+MOFS_PATH = f"/home/{os.environ.get('USER')}/preprocess/mofs.csv"
 
 # Get MySQL Password from user
 MYSQL_PASSWORD = getpass.getpass("Enter MySQL Password for DB Access: ")
