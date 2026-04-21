@@ -14,7 +14,8 @@ This branch should be used for documenting the location of configurations and th
 	- config: /var/www/mofinder/shared/ecosystem.config.js
 2. nginx
 	- configs: /etc/nginx/nginx.config  |  /etc/nginx/sites-available/mofinder.conf
-3. OpenVPN
+3. MySQL
+4. OpenVPN
 	- config: $HOME
 
 
