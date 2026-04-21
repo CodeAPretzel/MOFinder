@@ -21,8 +21,8 @@ This branch should be used for documenting the location of configurations and th
 ## Workflows
 1. GitHub actions
 	- can be found at /var/www/actions-runner
-	- in this repo, checkout .github/workflows/deploy.yml
-	- used to automatically deploy the app when uploading to the main repo.
+	- in **main** branch, checkout .github/workflows/deploy.yml
+	- used to automatically deploy the app when uploading to the **main** repo.
 2. Processing files
 	- can be found at /home/$USER/scripts
 	- for more info, checkout the README in scripts for this branch
