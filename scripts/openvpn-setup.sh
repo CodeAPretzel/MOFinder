@@ -7,9 +7,8 @@
 
 
 CLIENT_NAME=$1
-# Define paths based on your setup
-EASYRSA_DIR=~/easy-rsa/pki
-KEYS_DIR=/etc/openvpn/server # Where you copied the server's ta.key and ca.crt
+EASYRSA_DIR= # Define paths based on your setup
+KEYS_DIR= # Where you copied the server's ta.key and ca.crt
 
 if [ -z "$CLIENT_NAME" ]; then
     echo "Usage: $0 <client_name>"
