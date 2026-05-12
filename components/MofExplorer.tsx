@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { Search, Beaker, LineChart, Sparkles, FlaskConical } from 'lucide-react';
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { resolveMofInput } from '@/app/api/mof/handler';
-import { FILTER_DEFAULT_STATE } from '@/lib/utils';
+import { FILTER_DEFAULT_STATE } from '@/constants';
 import Header from '@/components/Header';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import FilterSidebar from '@/components/FilterSidebar';

@@ -1,12 +1,8 @@
 import { RowDataPacket } from "mysql2/promise";
 import { NextResponse } from "next/server";
 import { pool } from "@/lib/actions/mysql.actions";
-import {
-	FILTER_DEFINITIONS,
-	LINKER_SMILES_HASH_PARAM,
-	PARSE_BOOL,
-	PARSE_NUMBER,
-} from "@/lib/utils";
+import { FILTER_DEFINITIONS, LINKER_SMILES_HASH_PARAM } from "@/constants";
+import { PARSE_BOOL, PARSE_NUMBER } from "@/lib/utils";
 
 export const runtime = "nodejs";
 

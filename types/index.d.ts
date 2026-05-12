@@ -1,10 +1,10 @@
 /* eslint-disable no-unused-vars */
 
-declare type AiMetrics = {
-	synthesizability: number;
-	water_stability_score: number;
-	thermal_stability_score: number;
-};
+// declare type AiMetrics = {
+// 	synthesizability: number;
+// 	water_stability_score: number;
+// 	thermal_stability_score: number;
+// };
 
 declare type CanonicalizeSmilesResult =
 	| {

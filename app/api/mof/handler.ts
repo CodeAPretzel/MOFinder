@@ -1,7 +1,7 @@
 import {
 	FILTER_DEFINITIONS,
 	LINKER_SMILES_HASH_PARAM
-} from "@/lib/utils";
+} from "@/constants";
 
 export async function resolveMofInput(filters: FilterState, page: number, pageSize = 9, doi?: string) {
 	const params = new URLSearchParams();
