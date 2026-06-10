@@ -1,4 +1,3 @@
-// lib/actions/rdkit.server.ts
 import "server-only";
 import path from "path";
 import type { RDKitModule, RDKitLoader } from "@rdkit/rdkit";
