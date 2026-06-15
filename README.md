@@ -15,6 +15,7 @@ This branch should be used for documenting the location of configurations and th
 2. nginx
 	- configs: `/etc/nginx/nginx.config`  |  `/etc/nginx/sites-available/mofinder.conf`
 3. MySQL
+	- DB name: **mof_app**
 4. OpenVPN
 	- config: `$HOME`
 
@@ -26,9 +27,9 @@ This branch should be used for documenting the location of configurations and th
 	- used to automatically deploy the app when uploading to the **main** repo.
 2. Processing files
 	- can be found at `/home/$USER/scripts`
-	- for more info, checkout the `README` in `scripts` for this branch
+	- for more info, checkout the **README** in **scripts** for this branch
 
 
 ## Project Configuration
 1. Environment variables
-	- /var/www/mofinder/shared/.env
+	- `/var/www/mofinder/shared/.env`
