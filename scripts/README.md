@@ -61,7 +61,8 @@ RAW-CSV-DRIVEN-RUN:
 ** Used to create unique OpenVPN files to give to others wanting to access the VPN
 
 
-1) <incomplete>
+1) Simply run and check $HOME/openvpn-ca/clients to see the latest .ovpn file.
+2) Give the person the latest .ovpn file and have them use it using [OpenVPN GUI](https://github.com/OpenVPN/openvpn-gui) v11.59.0.0 (current version as of date)
 
 
 
