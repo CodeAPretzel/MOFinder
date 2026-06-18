@@ -9,7 +9,7 @@ TLS_AUTH_KEY="$OPENVPN_CA_DIR/ta.key"
 
 # Find next available client number
 max=0
-for file in "$OPENVPN_CA_DIR"/client*.ovpn; do
+for file in "$OPENVPN_CA_DIR"/clients/client*.ovpn; do
 [[ -e "$file" ]] || continue
 
 filename=${file##*/}
@@ -37,23 +37,13 @@ yes yes | "$EASYRSA" sign-req client "$CLIENT_NAME"
 CERT_FILE="$PKI_DIR/issued/${CLIENT_NAME}.crt"
 KEY_FILE="$PKI_DIR/private/${CLIENT_NAME}.key"
 
-[[ -f "$CERT_FILE" ]] || {
-echo "Certificate not found: $CERT_FILE"
-exit 1
-}
-
-[[ -f "$KEY_FILE" ]] || {
-echo "Private key not found: $KEY_FILE"
-exit 1
-}
-
 OVPN_FILE="$OPENVPN_CA_DIR/clients/${CLIENT_NAME}.ovpn"
 
 cat > "$OVPN_FILE" <<EOF
 client
 dev tun
 proto udp
-remote YOUR_SERVER_IP_OR_DOMAIN 1194
+remote 128.252.127.30 1194
 resolv-retry infinite
 nobind
 persist-key
