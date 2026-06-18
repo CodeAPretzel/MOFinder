@@ -9,6 +9,9 @@
 # testing
 /coverage
 
+# development binaries
+/public/binaries/**
+
 # next.js
 /.next/
 /out/

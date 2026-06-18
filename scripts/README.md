@@ -62,3 +62,9 @@ RAW-CSV-DRIVEN-RUN:
 
 
 1) <incomplete>
+
+
+
+--- ABOUT deploy.sh
+
+** Attempts to deploy NextJS application after a github main branch commit.
