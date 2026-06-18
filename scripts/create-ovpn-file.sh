@@ -48,7 +48,12 @@ resolv-retry infinite
 nobind
 persist-key
 persist-tun
+
+cipher AES-256-GCM
+auth SHA256
+key-direction 1
 remote-cert-tls server
+
 verb 3
 
 <ca>
