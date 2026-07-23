@@ -140,6 +140,34 @@ def make_mof_key_from_row(row: Dict[str, Any]) -> str:
     return hashlib.sha256(payload.encode("utf-8")).hexdigest()
 
 
+def prompt_to_delete_existing_rows(cur) -> None:
+    database_name = DB["database"]
+    prompt = (
+        f'Delete all existing rows from "{database_name}.mof_entry" before importing? [y/N]: '
+    )
+
+    while True:
+        try:
+            answer = input(prompt).strip().lower()
+        except EOFError:
+            print("\nNo interactive input available; keeping existing rows.")
+            return
+
+        if answer in ("", "n", "no"):
+            print(f"Keeping existing rows in {database_name}.mof_entry.")
+            return
+
+        if answer in ("y", "yes"):
+            cur.execute("DELETE FROM mof_entry;")
+            print(
+                f"Deleted {cur.rowcount} existing row(s) from "
+                f"{database_name}.mof_entry."
+            )
+            return
+
+        print("Please answer yes or no.")
+
+
 def preprocess_csv_row(row: Dict[str, Any]) -> Tuple[Dict[str, Any], List[Dict[str, Any]], List[Dict[str, Any]]]:
     # Identifiers
     doi_clean = none_if_nan(row.get("doi"))
@@ -249,6 +277,7 @@ def main() -> None:
     try:
         cur = conn.cursor()
 
+        prompt_to_delete_existing_rows(cur)
         print("Starting preprocessing now...")
 
         for _, r in df.iterrows():
