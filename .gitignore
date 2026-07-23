@@ -16,6 +16,9 @@
 # production
 /build
 
+# development binaries
+/public/binaries/**
+
 # misc
 .DS_Store
 *.pem
