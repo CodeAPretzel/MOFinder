@@ -141,31 +141,53 @@ def make_mof_key_from_row(row: Dict[str, Any]) -> str:
 
 
 def prompt_to_delete_existing_rows(cur) -> None:
+    """
+    Ask whether all rows in the configured database's mof_entry table
+    should be deleted before importing the CSV.
+    """
     database_name = DB["database"]
-    prompt = (
-        f'Delete all existing rows from "{database_name}.mof_entry" before importing? [y/N]: '
+    print(
+        f"\nWARNING: This will delete ALL rows from "
+        f"{database_name}.mof_entry.",
+        flush=True,
     )
 
     while True:
+        print(
+            f"Delete all existing rows from {database_name}.mof_entry "
+            f"before importing? [y/N]: ",
+            end="",
+            flush=True,
+        )
+
         try:
-            answer = input(prompt).strip().lower()
+            answer = input().strip().lower()
         except EOFError:
-            print("\nNo interactive input available; keeping existing rows.")
-            return
-
-        if answer in ("", "n", "no"):
-            print(f"Keeping existing rows in {database_name}.mof_entry.")
-            return
-
-        if answer in ("y", "yes"):
-            cur.execute("DELETE FROM mof_entry;")
             print(
-                f"Deleted {cur.rowcount} existing row(s) from "
-                f"{database_name}.mof_entry."
+                "\nNo interactive input available; keeping existing rows.",
+                flush=True,
             )
             return
 
-        print("Please answer yes or no.")
+        if answer in ("", "n", "no"):
+            print(
+                f"Keeping existing rows in {database_name}.mof_entry.",
+                flush=True,
+            )
+            return
+
+        if answer in ("y", "yes"):
+            # Fully qualify the table so ONLY mof_entry is affected.
+            # No other tables in mof_app are deleted.
+            cur.execute(f"DELETE FROM `{database_name}`.`mof_entry`;")
+            print(
+                f"Deleted {cur.rowcount} existing row(s) from "
+                f"{database_name}.mof_entry.",
+                flush=True,
+            )
+            return
+
+        print("Please answer yes or no.", flush=True)
 
 
 def preprocess_csv_row(row: Dict[str, Any]) -> Tuple[Dict[str, Any], List[Dict[str, Any]], List[Dict[str, Any]]]:
