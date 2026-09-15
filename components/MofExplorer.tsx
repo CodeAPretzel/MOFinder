@@ -138,7 +138,7 @@ const MofExplorer = () => {
 							<Beaker size={24} />
 						</div>
 						<div>
-							<div className="text-2xl font-bold">13,000+</div>
+							<div className="text-2xl font-bold">10,000+</div>
 							<div className="text-sm text-slate-500 dark:text-slate-400">Unique Experiments</div>
 						</div>
 					</div>
