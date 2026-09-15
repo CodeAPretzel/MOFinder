@@ -42,8 +42,9 @@ MYSQL-BACKFILL:
 1. python preprocess-mof-linkers-with-aliases.py \
     --source mysql \
     --create-tables \
+	--truncate-first \
     --out-dir linker-build-debug
-2. Note, --out-dir argument is optional; used for debugging.
+2. Note, --out-dir argument is optional; used for debugging. --truncate-first to delete existing tables before rebuilding.
 
 
 RAW-CSV-DRIVEN-RUN:
@@ -51,8 +52,9 @@ RAW-CSV-DRIVEN-RUN:
     --source csv \
     --source-csv /home/zhenglab/preprocess/mofs.csv \
     --create-tables \
+	--truncate-first \
     --out-dir linker-build-debug
-2. Note, --out-dir argument is optional; used for debugging.
+2. Note, --out-dir argument is optional; used for debugging. --truncate-first to delete existing tables before rebuilding.
 
 
 
