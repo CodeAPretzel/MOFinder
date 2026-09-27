@@ -16,6 +16,8 @@ Search for MOFs using:
 - Linker names
 - Metal names or elements
 
+<img width="70%" height="70%" alt="mof-filtering" src="https://github.com/user-attachments/assets/17ac7cfc-7626-4d12-8eb0-ff950daa0dce" />
+
 ### Chemical Structure Search
 
 Linkers can be entered as:
@@ -23,6 +25,8 @@ Linkers can be entered as:
 - Common chemical names
 - SMILES strings
 - Drawn molecular structures
+
+<img width="70%" height="70%" alt="smiles-filtering" src="https://github.com/user-attachments/assets/6d8ab05f-b2db-42f7-810c-4a1b6b46802e" />
 
 ### Experimental Filters
 
@@ -35,6 +39,8 @@ Results can be refined using properties such as:
 - Pore diameter
 - Maximum synthesis temperature
 - Maximum synthesis time
+
+<img width="70%" height="70%" alt="sidebar-filtering" src="https://github.com/user-attachments/assets/b9800c32-28b9-4cdd-994b-646bac11eaaa" />
 
 ## Technology Stack
 
