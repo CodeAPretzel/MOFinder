@@ -1,0 +1,59 @@
+name: Monitor
+
+on:
+  schedule:
+    - cron: "17 * * * *"
+
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check-website:
+    name: Check website availability
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check public website
+        env:
+          SITE_URL: ${{ vars.SITE_URL }}
+        shell: bash
+        run: |
+          if [[ -z "$SITE_URL" ]]; then
+            echo "::error::SITE_URL is not configured."
+            exit 1
+          fi
+
+          # Capture failures without immediately stopping the step.
+          set +e
+          HTTP_CODE=$(curl \
+            --silent \
+            --show-error \
+            --location \
+            --connect-timeout 10 \
+            --max-time 30 \
+            --output /dev/null \
+            --write-out "%{http_code}" \
+            "$SITE_URL" 2>curl-error.txt)
+          CURL_EXIT=$?
+          set -e
+
+          echo "Website: $SITE_URL"
+          echo "HTTP status: ${HTTP_CODE:-000}"
+          echo "curl exit code: $CURL_EXIT"
+
+          # Connection errors and timeouts
+          if [[ "$CURL_EXIT" -ne 0 ]]; then
+            echo "::error::Website request failed."
+            cat curl-error.txt
+            exit 1
+          fi
+
+          # Consider HTTP 200-399 successful
+          if ! [[ "$HTTP_CODE" =~ ^[23][0-9][0-9]$ ]]; then
+            echo "::error::Website returned HTTP $HTTP_CODE"
+            exit 1
+          fi
+
+          echo "Website is online."

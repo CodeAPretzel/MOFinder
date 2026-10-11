@@ -5,7 +5,7 @@ import { X, CheckCircle, Maximize } from "lucide-react";
 import { resolveLinkerInput } from "@/app/api/linker/handler";
 import { getClientRDKit } from "@/lib/rdkit";
 import DetailModalFooter from "./DetailModalFooter";
-import DetailModalAI from "./DetailModalAI";
+// import DetailModalAI from "./DetailModalAI";
 import DetailModalSynthesisCard from "./DetailModalSynthesisCard";
 
 const DetailModal: React.FC<DetailModalProps> = ({ mof, onClose }) => {
@@ -228,7 +228,7 @@ const DetailModal: React.FC<DetailModalProps> = ({ mof, onClose }) => {
 							</div>
 						</section>
 
-						<DetailModalAI mof={mof} />
+						{/* <DetailModalAI mof={mof} /> */}
 					</div>
 				</div>
 
