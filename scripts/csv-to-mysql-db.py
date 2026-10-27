@@ -21,6 +21,30 @@ DB = {
     "port": int(os.environ.get("MYSQL_PORT", "3306")),
 }
 
+# Fields used to rank records by completeness
+COMPLETENESS_FIELDS = (
+    "doi",
+    "mof_name",
+    "mof_description",
+    "metal_1",
+    "metal_1_abbr",
+    "linker_1",
+    "linker_1_abbr",
+    "topology_code",
+    "solvent_main",
+    "temperature_c",
+    "time_h",
+    "yield_percent",
+    "bet_surface_area_m2g",
+    "pore_diameter_A",
+    "tga_decomposition_temp_c",
+    "water_stable",
+    "air_stable",
+    "crystal_morphology",
+    "synthesis_procedure",
+    "activation_procedure",
+)
+
 
 ###########
 # Helpers #
@@ -129,6 +153,42 @@ def normalize_for_mysql(v: Any) -> Any:
     return v
 
 
+def is_populated(value: Any) -> bool:
+    """Return whether a value contains information; numeric 0 and False count."""
+    if value is None:
+        return False
+    try:
+        if pd.isna(value):
+            return False
+    except (TypeError, ValueError):
+        pass
+
+    if isinstance(value, str):
+        normalized = value.strip().lower()
+        return normalized not in {"", "nan", "none", "null", "n/a", "na", "unknown", "-"}
+
+    # In particular, keep numeric zero and Boolean False as valid values.
+    return True
+
+
+def calculate_completeness_score(
+    entry: Dict[str, Any], source_row: Dict[str, Any]
+) -> int:
+    """Count populated user-facing fields, without treating blank flags as data."""
+    score = 0
+    boolean_fields = {"water_stable", "air_stable"}
+
+    for field in COMPLETENESS_FIELDS:
+        # to_bool() currently maps an empty CSV cell to False for the database.
+        # Check the original CSV cell so an empty cell does not earn a point.
+        if field in boolean_fields and not is_populated(source_row.get(field)):
+            continue
+        if is_populated(entry.get(field)):
+            score += 1
+
+    return score
+
+
 ##############
 # Main Logic #
 ##############
@@ -226,6 +286,9 @@ def preprocess_csv_row(row: Dict[str, Any]) -> Tuple[Dict[str, Any], List[Dict[s
 
         "raw_csv": json.dumps(clean_for_json(row), ensure_ascii=False, allow_nan=False),
     }
+
+    # Persist the score so the website can sort before applying pagination.
+    entry["completeness_score"] = calculate_completeness_score(entry, row)
 
     # Optional: SMILES (not in your sample row, but supported)
     smiles_rows: List[Dict[str, Any]] = []
