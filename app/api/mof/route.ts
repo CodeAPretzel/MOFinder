@@ -154,7 +154,7 @@ export async function GET(req: Request) {
 			`SELECT ${selectCols}
 			 FROM mof_entry
 			 ${whereSql}
-			 ORDER BY id DESC
+			 ORDER BY completeness_score DESC, id DESC
 			 LIMIT ? OFFSET ?`,
 			[...params, pageSize, offset]
 		);
