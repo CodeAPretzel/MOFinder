@@ -147,21 +147,21 @@ const DetailModalSynthesisCard = ({
 					onClick={onToggleExpanded}
 					className="w-full flex items-center justify-between p-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors"
 				>
-					<span>Step-by-Step Preparation & Activation</span>
+					<span>Activation Steps</span>
 					{isExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
 				</button>
 
 				{isExpanded && (
 					<div className="mt-2 p-5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg animate-in slide-in-from-top-2 duration-200">
 						<div className="space-y-4">
-							<div>
+							{/* <div>
 								<h4 className="text-xs font-bold text-indigo-600 dark:text-indigo-400 uppercase mb-2">
 									Preparation
 								</h4>
 								<p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
 									{mof.synthesis_procedure}
 								</p>
-							</div>
+							</div> */}
 
 							<div className="h-px bg-slate-100 dark:bg-slate-700" />
 
