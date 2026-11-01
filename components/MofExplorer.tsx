@@ -6,15 +6,17 @@ import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { resolveMofInput } from '@/app/api/mof/handler';
 import { FILTER_DEFAULT_STATE } from '@/constants';
 import Header from '@/components/Header';
+import Theme from '@/components/Theme';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import FilterSidebar from '@/components/FilterSidebar';
+import AiPredictions from '@/components/AiPredictions';
 import DetailModal from '@/components/DetailModal';
-import Theme from '@/components/Theme';
 import MofPagination from '@/components/MofPagination';
 
 const MofExplorer = () => {
 	const { isDarkMode, toggleTheme } = Theme();
 	const [selectedMof, setSelectedMof] = useState<MofEntry | null>(null);
+	const [isAiPredictionsOpen, setIsAiPredictionsOpen] = useState(false);
 
 	const [mofData, setMofData] = useState<MofEntry[]>([]);
 	const [totalCount, setTotalCount] = useState<number>(0);
@@ -105,6 +107,7 @@ const MofExplorer = () => {
 			<Header
 				isDarkMode={isDarkMode}
 				toggleTheme={toggleTheme}
+				onAiPredictionsClick={() => setIsAiPredictionsOpen(true)}
 			/>
 
 			<main className="container mx-auto px-4 py-8">
@@ -240,6 +243,10 @@ const MofExplorer = () => {
 					}}
 				/>
 			)}
+
+			<AiPredictions
+				isOpen={isAiPredictionsOpen} onClose={() => setIsAiPredictionsOpen(false)}
+			/>
 		</div>
 	);
 }

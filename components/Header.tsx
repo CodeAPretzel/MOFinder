@@ -1,7 +1,7 @@
 import React from 'react';
 import { Moon, Sun, FlaskConical, Menu } from 'lucide-react';
 
-const Header: React.FC<HeaderProps> = ({ isDarkMode, toggleTheme }) => {
+const Header: React.FC<HeaderProps> = ({ isDarkMode, toggleTheme, onAiPredictionsClick }) => {
 	return (
 		<header className="sticky top-0 z-50 w-full border-b border-slate-200 dark:border-slate-700 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md transition-colors duration-200">
 			<div className="container mx-auto px-4 h-16 flex items-center justify-between">
@@ -19,6 +19,12 @@ const Header: React.FC<HeaderProps> = ({ isDarkMode, toggleTheme }) => {
 				<nav className="hidden md:flex items-center space-x-8">
 					<button className="text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors">
 						Explore Experiments
+					</button>
+					<button
+						onClick={onAiPredictionsClick}
+						className="text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors flex items-center gap-1"
+					>
+						AI Predictions <span className="text-cs px-1.5 py-0.5 rounded bg-indigo-100 dark:bg-indigo-900 text-indigo-600 dark:text-indigo-300">In development</span>
 					</button>
 				</nav>
 

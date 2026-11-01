@@ -117,10 +117,10 @@ declare type MofEntry = {
 //////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////
 
-// declare interface AiAssistantProps {
-//   isOpen: boolean;
-//   onClose: () => void;
-// }
+declare interface AiPredictionsProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
 
 declare interface DetailModalProps {
 	mof: MofEntry;
@@ -136,6 +136,7 @@ declare interface FilterSidebarProps {
 declare interface HeaderProps {
 	isDarkMode: boolean;
 	toggleTheme: () => void;
+	onAiPredictionsClick: () => void;
 }
 
 declare interface JSMEEditorProps {
