@@ -36,6 +36,25 @@ export const FILTER_DEFAULT_STATE: FilterState = {
 
 export const LINKER_SMILES_HASH_PARAM = "linkerSmilesHash";
 
+// Synthesis conditions scored by the AI model, in display order
+export const AI_PREDICTION_FIELDS: Array<{
+	key: AiPredictionField;
+	label: string;
+	unit?: string;
+	numeric: boolean;
+}> = [
+	{ key: "metal_precursor", label: "Metal precursor", numeric: false },
+	{ key: "organic_linker", label: "Organic linker", numeric: false },
+	{ key: "modulator", label: "Modulator", numeric: false },
+	{ key: "solvent", label: "Solvent", numeric: false },
+	{ key: "metal_concentration_mM", label: "Metal concentration", unit: "mM", numeric: true },
+	{ key: "M_L_ratio", label: "Metal : linker ratio", numeric: true },
+	{ key: "temperature_C", label: "Temperature", unit: "°C", numeric: true },
+	{ key: "time_h", label: "Time", unit: "h", numeric: true },
+];
+
+export const AI_PREDICTION_TOP_LIMIT = 10;
+
 export const METALS = [
 	'Zn',
 	'Zr',

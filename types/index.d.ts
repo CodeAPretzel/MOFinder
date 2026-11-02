@@ -6,6 +6,39 @@
 // 	thermal_stability_score: number;
 // };
 
+declare type AiPredictionField =
+	| "metal_precursor"
+	| "organic_linker"
+	| "modulator"
+	| "solvent"
+	| "metal_concentration_mM"
+	| "M_L_ratio"
+	| "temperature_C"
+	| "time_h";
+
+// One full set of synthesis conditions (a "recipe") the model scores
+declare type SynthesisRecipe = {
+	metal_precursor: string;
+	organic_linker: string;
+	modulator: string;
+	solvent: string;
+	metal_concentration_mM: number;
+	M_L_ratio: number;
+	temperature_C: number;
+	time_h: number;
+};
+
+declare type SynthesisPrediction = {
+	recipe: SynthesisRecipe;
+	score: number;
+	pred: "P" | "N";
+	model: string;
+};
+
+declare type AiPredictionOptions = {
+	[K in AiPredictionField]: Array<SynthesisRecipe[K]>;
+};
+
 declare type CanonicalizeSmilesResult =
 	| {
 		ok: true;
