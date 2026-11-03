@@ -33,11 +33,44 @@ declare type SynthesisPrediction = {
 	score: number;
 	pred: "P" | "N";
 	model: string;
+	// Only set when the live model answered (AI_PREDICTION_MODE=live)
+	source?: "live" | "precomputed";
+	precomputedScore?: number;
+	latencyMs?: number;
+	cached?: boolean;
 };
 
 declare type AiPredictionOptions = {
 	[K in AiPredictionField]: Array<SynthesisRecipe[K]>;
 };
+
+declare type AiPredictionMode = "precomputed" | "live";
+
+declare type AiPredictionNumericField = "metal_concentration_mM" | "M_L_ratio" | "temperature_C" | "time_h";
+
+declare type AiPredictionNumericRanges = {
+	[K in AiPredictionNumericField]: { min: number; max: number; step: number };
+};
+
+declare type AiPredictionConfig = {
+	mode: AiPredictionMode;
+	numericRanges: AiPredictionNumericRanges;
+	liveModel: {
+		label: string;
+		quantized: true;
+		fullModelUrl: string;
+	};
+};
+
+declare type AiPredictionLiveStatus = "online" | "offline" | "busy" | "disabled";
+
+declare type AiPredictionStatus = {
+	mode: AiPredictionMode;
+	live: AiPredictionLiveStatus;
+};
+
+// Why a live prediction failed, so the popup can show a matching message
+declare type AiPredictionErrorCode = "invalid" | "rate_limited" | "busy" | "offline" | "timeout" | "model_error";
 
 declare type CanonicalizeSmilesResult =
 	| {

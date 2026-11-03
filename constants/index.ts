@@ -55,6 +55,27 @@ export const AI_PREDICTION_FIELDS: Array<{
 
 export const AI_PREDICTION_TOP_LIMIT = 10;
 
+// Numbers users may type for the live model: 1st-99th percentiles of the training data, rounded outward
+export const AI_PREDICTION_NUMERIC_RANGES: AiPredictionNumericRanges = {
+	metal_concentration_mM: { min: 2, max: 2000, step: 1 },
+	M_L_ratio: { min: 0.05, max: 20, step: 0.05 },
+	temperature_C: { min: 20, max: 220, step: 1 },
+	time_h: { min: 0.5, max: 360, step: 0.5 },
+};
+
+export const AI_PREDICTION_FULL_MODEL_URL = "https://huggingface.co/StarLiu714/GPT-oss-MOFinder";
+
+// What the popup says for each live-model error. The API route sends these, and
+// the browser falls back to them when nginx answers with its own error page.
+export const AI_PREDICTION_LIVE_MESSAGES: Record<AiPredictionErrorCode, string> = {
+	invalid: "The live model could not read this recipe.",
+	rate_limited: "Too many live predictions from your connection. Please wait a moment and try again.",
+	busy: "The model is busy. Please try again in a minute.",
+	offline: "The live model is offline right now.",
+	timeout: "The live model took too long to answer (it may be busy). Please try again in a minute.",
+	model_error: "The live model could not score this recipe. Please try again later.",
+};
+
 export const METALS = [
 	'Zn',
 	'Zr',

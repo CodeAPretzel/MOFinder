@@ -1,15 +1,54 @@
 "use client"
 
-import React, { useEffect, useState } from 'react';
-import { X, Brain, ChevronDown, Trophy, FlaskConical } from 'lucide-react';
-import { AI_PREDICTION_FIELDS, AI_PREDICTION_TOP_LIMIT } from '@/constants';
-import { fetchPrediction, fetchPredictionOptions, fetchTopRecipes } from '@/app/api/ai-prediction/handler';
-import { formatPredictionValue } from '@/lib/prediction';
+import React, { useEffect, useRef, useState } from 'react';
+import { X, Brain, ChevronDown, Trophy, FlaskConical, Play } from 'lucide-react';
+import { AI_PREDICTION_FIELDS, AI_PREDICTION_FULL_MODEL_URL, AI_PREDICTION_NUMERIC_RANGES, AI_PREDICTION_TOP_LIMIT } from '@/constants';
+import {
+	fetchLivePrediction,
+	fetchPrediction,
+	fetchPredictionConfig,
+	fetchPredictionOptions,
+	fetchPredictionStatus,
+	fetchTopRecipes,
+} from '@/app/api/ai-prediction/handler';
+import { checkNumericValue, formatPredictionValue, isNumericField, isOnGrid } from '@/lib/prediction';
 
 const PAIR_FIELDS = AI_PREDICTION_FIELDS.filter(f => f.key === 'metal_precursor' || f.key === 'organic_linker');
 const CONDITION_FIELDS = AI_PREDICTION_FIELDS.filter(f => f.key !== 'metal_precursor' && f.key !== 'organic_linker');
+const NUMERIC_FIELDS = AI_PREDICTION_FIELDS.filter(f => isNumericField(f.key));
 
 const SELECT_CLASS = "w-full p-2.5 pl-3 pr-8 text-sm bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg appearance-none focus:ring-2 focus:ring-indigo-500 focus:outline-none dark:text-slate-200";
+const INPUT_CLASS = "w-full p-2.5 pl-3 text-sm bg-white dark:bg-slate-800 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none dark:text-slate-200";
+
+const STATUS_POLL_MS = 30_000;
+
+type NumberDrafts = Record<AiPredictionNumericField, string>;
+type LiveError = { code: AiPredictionErrorCode | 'cancelled'; message: string };
+
+const EMPTY_DRAFTS: NumberDrafts = { metal_concentration_mM: '', M_L_ratio: '', temperature_C: '', time_h: '' };
+
+const STATUS_DOT: Record<AiPredictionLiveStatus, { dot: string; text: string }> = {
+	online: { dot: 'bg-emerald-500', text: 'Live model online' },
+	busy: { dot: 'bg-amber-400', text: 'Live model busy' },
+	offline: { dot: 'bg-rose-500', text: 'Live model offline' },
+	disabled: { dot: 'bg-slate-400', text: 'Live model off' },
+};
+
+function draftsFrom(recipe: Partial<SynthesisRecipe>): NumberDrafts {
+	const drafts = { ...EMPTY_DRAFTS };
+	for (const { key } of NUMERIC_FIELDS) {
+		const value = recipe[key];
+		if (value != null) drafts[key as AiPredictionNumericField] = String(value);
+	}
+	return drafts;
+}
+
+function liveErrorMessage(code: AiPredictionErrorCode, message: string, retryAfter?: number): string {
+	if (code === 'rate_limited' && retryAfter) {
+		return `Too many live predictions from your connection. Please try again in about ${retryAfter} s.`;
+	}
+	return message;
+}
 
 const ScoreBar = ({ score, pred }: { score: number; pred: 'P' | 'N' }) => (
 	<div className="flex items-center gap-2 min-w-[7rem]">
@@ -23,9 +62,27 @@ const ScoreBar = ({ score, pred }: { score: number; pred: 'P' | 'N' }) => (
 	</div>
 );
 
+const PredLabel = ({ pred }: { pred: 'P' | 'N' }) => (
+	<span className={`text-sm font-semibold ${pred === 'P' ? 'text-emerald-700 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
+		{pred === 'P' ? 'Likely crystalline' : 'Unlikely to crystallize'}
+	</span>
+);
+
+const FullModelLink = ({ url }: { url: string }) => (
+	<a href={url} target="_blank" rel="noopener noreferrer" className="underline hover:text-indigo-600 dark:hover:text-indigo-400">
+		Hugging Face
+	</a>
+);
+
 const AiPredictions: React.FC<AiPredictionsProps> = ({ isOpen, onClose }) => {
 	const [options, setOptions] = useState<AiPredictionOptions | null>(null);
 	const [optionsError, setOptionsError] = useState<string | null>(null);
+
+	// Which mode the server runs in; null until /config answers
+	const [config, setConfig] = useState<AiPredictionConfig | null>(null);
+	const [configFailed, setConfigFailed] = useState(false);
+	const mode: AiPredictionMode | null = config?.mode ?? (configFailed ? 'precomputed' : null);
+	const isLive = mode === 'live';
 
 	const [recipe, setRecipe] = useState<Partial<SynthesisRecipe>>({});
 
@@ -36,6 +93,17 @@ const AiPredictions: React.FC<AiPredictionsProps> = ({ isOpen, onClose }) => {
 	const [prediction, setPrediction] = useState<SynthesisPrediction | null>(null);
 	const [predictionLoading, setPredictionLoading] = useState(false);
 	const [predictionError, setPredictionError] = useState<string | null>(null);
+
+	// Live mode: typed numbers, the last live answer and the running request
+	const [drafts, setDrafts] = useState<NumberDrafts>(EMPTY_DRAFTS);
+	const [liveStatus, setLiveStatus] = useState<AiPredictionLiveStatus | null>(null);
+	const [liveResult, setLiveResult] = useState<SynthesisPrediction | null>(null);
+	const [liveError, setLiveError] = useState<LiveError | null>(null);
+	const [runStartedAt, setRunStartedAt] = useState<number | null>(null);
+	const [elapsed, setElapsed] = useState(0);
+	const runIdRef = useRef(0);
+	const abortRef = useRef<AbortController | null>(null);
+	const isRunning = runStartedAt != null;
 
 	// Load the dropdown choices the first time the panel opens
 	useEffect(() => {
@@ -54,11 +122,66 @@ const AiPredictions: React.FC<AiPredictionsProps> = ({ isOpen, onClose }) => {
 					}
 					return next;
 				});
+				// Same starting numbers for the live form's typed inputs
+				setDrafts((prev) => {
+					const next = { ...prev };
+					for (const { key } of NUMERIC_FIELDS) {
+						const numericKey = key as AiPredictionNumericField;
+						if (next[numericKey] === '') next[numericKey] = String(loaded[numericKey][0]);
+					}
+					return next;
+				});
 			})
 			.catch((err) => !cancelled && setOptionsError(err.message));
 
 		return () => { cancelled = true; };
 	}, [isOpen, options]);
+
+	// Precomputed (Plan A) or live (Plan B); if this fails, behave like Plan A
+	useEffect(() => {
+		if (!isOpen || config || configFailed) return;
+		let cancelled = false;
+
+		fetchPredictionConfig()
+			.then((loaded) => !cancelled && setConfig(loaded))
+			.catch(() => !cancelled && setConfigFailed(true));
+
+		return () => { cancelled = true; };
+	}, [isOpen, config, configFailed]);
+
+	// Live model status dot, refreshed while the panel is open
+	useEffect(() => {
+		if (!isOpen || !isLive) return;
+		let cancelled = false;
+
+		const refresh = () => fetchPredictionStatus()
+			.then((status) => !cancelled && setLiveStatus(status.live))
+			.catch(() => !cancelled && setLiveStatus('offline'));
+
+		refresh();
+		const timer = setInterval(refresh, STATUS_POLL_MS);
+		return () => {
+			cancelled = true;
+			clearInterval(timer);
+		};
+	}, [isOpen, isLive]);
+
+	// Seconds counter while a live request runs
+	useEffect(() => {
+		if (runStartedAt == null) return;
+		setElapsed(0);
+		const timer = setInterval(() => setElapsed(Math.floor((Date.now() - runStartedAt) / 1000)), 250);
+		return () => clearInterval(timer);
+	}, [runStartedAt]);
+
+	// Closing the panel cancels a running live request
+	useEffect(() => {
+		if (isOpen) return;
+		runIdRef.current += 1;
+		abortRef.current?.abort();
+		abortRef.current = null;
+		setRunStartedAt(null);
+	}, [isOpen]);
 
 	const metal = recipe.metal_precursor ?? '';
 	const linker = recipe.organic_linker ?? '';
@@ -81,12 +204,12 @@ const AiPredictions: React.FC<AiPredictionsProps> = ({ isOpen, onClose }) => {
 		return () => { cancelled = true; };
 	}, [metal, linker]);
 
-	// Score the full recipe once every field is chosen
+	// Precomputed mode: score the full recipe once every field is chosen
 	const isComplete = AI_PREDICTION_FIELDS.every(({ key }) => recipe[key] != null && recipe[key] !== '');
 	const recipeKey = AI_PREDICTION_FIELDS.map(({ key }) => recipe[key]).join('|');
 
 	useEffect(() => {
-		if (!isComplete) {
+		if (!isComplete || mode !== 'precomputed') {
 			setPrediction(null);
 			return;
 		}
@@ -102,12 +225,74 @@ const AiPredictions: React.FC<AiPredictionsProps> = ({ isOpen, onClose }) => {
 		return () => { cancelled = true; };
 		// recipeKey captures every recipe field
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [recipeKey, isComplete]);
+	}, [recipeKey, isComplete, mode]);
 
 	if (!isOpen) return null;
 
+	const ranges = config?.numericRanges ?? AI_PREDICTION_NUMERIC_RANGES;
+	const fullModelUrl = config?.liveModel.fullModelUrl ?? AI_PREDICTION_FULL_MODEL_URL;
+
 	const setField = (key: AiPredictionField, raw: string, numeric: boolean) => {
 		setRecipe(prev => ({ ...prev, [key]: raw === '' ? undefined : numeric ? Number(raw) : raw }));
+	};
+
+	// Fill the form from a top-recipes row (numbers go into the typed inputs too)
+	const loadRecipe = (row: SynthesisRecipe) => {
+		setRecipe(row);
+		setDrafts(draftsFrom(row));
+	};
+
+	// The recipe the live form currently describes, or null while a number is invalid
+	const numberChecks = NUMERIC_FIELDS.map(({ key }) => checkNumericValue(key as AiPredictionNumericField, drafts[key as AiPredictionNumericField]));
+	const numbersValid = numberChecks.every(c => c.error == null);
+	const liveRecipe: SynthesisRecipe | null = metal && linker && recipe.modulator && recipe.solvent && numbersValid
+		? {
+			...(recipe as SynthesisRecipe),
+			...Object.fromEntries(NUMERIC_FIELDS.map(({ key }, i) => [key, numberChecks[i].value])),
+		}
+		: null;
+	const liveRecipeKey = liveRecipe ? AI_PREDICTION_FIELDS.map(({ key }) => liveRecipe[key]).join('|') : '';
+	const resultKey = liveResult ? AI_PREDICTION_FIELDS.map(({ key }) => liveResult.recipe[key]).join('|') : '';
+
+	const runLive = async () => {
+		if (!liveRecipe || isRunning) return;
+
+		// Only the newest request may update the panel
+		const runId = ++runIdRef.current;
+		const controller = new AbortController();
+		abortRef.current = controller;
+		setRunStartedAt(Date.now());
+		setLiveError(null);
+
+		try {
+			const result = await fetchLivePrediction(liveRecipe, controller.signal);
+			if (runId !== runIdRef.current) return;
+
+			if (result.ok) {
+				setLiveResult(result.data);
+			} else {
+				setLiveError({ code: result.code, message: liveErrorMessage(result.code, result.error, result.retryAfter) });
+				if (result.code === 'busy' || result.code === 'offline' || result.code === 'timeout') {
+					fetchPredictionStatus().then((s) => setLiveStatus(s.live)).catch(() => setLiveStatus('offline'));
+				}
+			}
+		} catch {
+			if (runId !== runIdRef.current) return;
+			setLiveError({ code: 'cancelled', message: 'Cancelled.' });
+		} finally {
+			if (runId === runIdRef.current) {
+				setRunStartedAt(null);
+				abortRef.current = null;
+			}
+		}
+	};
+
+	const cancelLive = () => {
+		runIdRef.current += 1;
+		abortRef.current?.abort();
+		abortRef.current = null;
+		setRunStartedAt(null);
+		setLiveError({ code: 'cancelled', message: 'Cancelled.' });
 	};
 
 	const renderSelect = ({ key, label, numeric }: (typeof AI_PREDICTION_FIELDS)[number], placeholder?: string) => (
@@ -130,6 +315,106 @@ const AiPredictions: React.FC<AiPredictionsProps> = ({ isOpen, onClose }) => {
 		</label>
 	);
 
+	// Live mode: typed number with the grid values offered as suggestions
+	const renderNumberInput = ({ key, label, unit }: (typeof AI_PREDICTION_FIELDS)[number], index: number) => {
+		const numericKey = key as AiPredictionNumericField;
+		const { min, max, step } = ranges[numericKey];
+		const { error } = numberChecks[index];
+		const hintId = `ai-pred-${key}-hint`;
+
+		return (
+			<label key={key} className="block">
+				<span className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">
+					{label}{unit ? ` (${unit})` : ''}
+				</span>
+				<input
+					type="number"
+					inputMode="decimal"
+					min={min}
+					max={max}
+					step={step}
+					list={`ai-pred-${key}-grid`}
+					value={drafts[numericKey]}
+					onChange={(e) => setDrafts(prev => ({ ...prev, [numericKey]: e.target.value }))}
+					disabled={!options}
+					aria-invalid={error != null}
+					aria-describedby={hintId}
+					className={`${INPUT_CLASS} ${error ? 'border-rose-400 dark:border-rose-500' : 'border-slate-200 dark:border-slate-700'}`}
+				/>
+				<datalist id={`ai-pred-${key}-grid`}>
+					{(options?.[key] ?? []).map(value => <option key={String(value)} value={value} />)}
+				</datalist>
+				<span id={hintId} className={`block mt-1 text-xs ${error ? 'text-rose-600 dark:text-rose-400' : 'text-slate-400'}`}>
+					{error ?? `${formatPredictionValue(key, min)} to ${formatPredictionValue(key, max)}`}
+				</span>
+			</label>
+		);
+	};
+
+	const renderLiveResult = () => {
+		if (!metal || !linker) {
+			return <p className="text-sm text-slate-500 dark:text-slate-400">Select a metal precursor and a linker to score this recipe.</p>;
+		}
+		if (isRunning) {
+			return (
+				<div className="flex flex-wrap items-center gap-3">
+					<p className="text-sm text-slate-600 dark:text-slate-300">
+						Running the live model… <span aria-hidden="true">{elapsed} s</span>
+					</p>
+					<button
+						type="button"
+						onClick={cancelLive}
+						className="px-3 py-1 text-xs font-medium rounded-lg border border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-800"
+					>
+						Cancel
+					</button>
+				</div>
+			);
+		}
+
+		const errorBox = liveError && (
+			<p className={`text-sm ${liveError.code === 'cancelled' ? 'text-slate-500 dark:text-slate-400' : 'text-rose-600 dark:text-rose-400'}`}>
+				{liveError.message}
+			</p>
+		);
+
+		if (!liveResult) {
+			return errorBox || <p className="text-sm text-slate-500 dark:text-slate-400">Set the conditions and press Run live model.</p>;
+		}
+
+		const changed = resultKey !== liveRecipeKey;
+
+		return (
+			<div className="space-y-2">
+				{errorBox}
+				<div className={`flex flex-col sm:flex-row sm:items-center gap-3 ${changed || liveError ? 'opacity-50' : ''}`}>
+					<div className="flex-1">
+						<ScoreBar score={liveResult.score} pred={liveResult.pred} />
+					</div>
+					<PredLabel pred={liveResult.pred} />
+				</div>
+				<div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500 dark:text-slate-400">
+					<span className="px-2 py-0.5 rounded-full bg-indigo-600 text-white font-medium">Live model</span>
+					{/* The model server's mock backend (a wiring test) answers from the precomputed table */}
+					{/mock|test mode/i.test(liveResult.model) && (
+						<span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-200">
+							{liveResult.model}
+						</span>
+					)}
+					{liveResult.latencyMs != null && <span>{(liveResult.latencyMs / 1000).toFixed(1)} s</span>}
+					{liveResult.precomputedScore != null ? (
+						<span>Full model (precomputed): <span className="font-mono">{liveResult.precomputedScore.toFixed(3)}</span></span>
+					) : options && !isOnGrid(liveResult.recipe, options) ? (
+						<span>Not on the precomputed grid, so there is no full-model score to compare.</span>
+					) : null}
+				</div>
+				{changed && <p className="text-xs text-slate-500 dark:text-slate-400">The conditions changed since this run.</p>}
+			</div>
+		);
+	};
+
+	const statusDot = liveStatus ? STATUS_DOT[liveStatus] : null;
+
 	return (
 		<div className="fixed inset-0 z-[110] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-slate-900/50 backdrop-blur-sm">
 			<div className="bg-white dark:bg-slate-900 w-full max-w-3xl sm:rounded-2xl shadow-2xl max-h-[92vh] flex flex-col animate-in slide-in-from-bottom-10 duration-300 border border-slate-200 dark:border-slate-800">
@@ -150,6 +435,7 @@ const AiPredictions: React.FC<AiPredictionsProps> = ({ isOpen, onClose }) => {
 					<p className="text-sm text-slate-600 dark:text-slate-400">
 						Pick a metal precursor and an organic linker to see the synthesis conditions the model scores highest.
 						The score is the predicted probability that the synthesis gives a crystalline product.
+						{isLive && ' You can also type your own conditions and run the live model on them.'}
 					</p>
 
 					{optionsError && (
@@ -167,8 +453,13 @@ const AiPredictions: React.FC<AiPredictionsProps> = ({ isOpen, onClose }) => {
 						<section className="space-y-2">
 							<h4 className="flex items-center gap-2 text-sm font-semibold text-slate-800 dark:text-slate-100">
 								<Trophy size={16} className="text-indigo-600 dark:text-indigo-400" />
-								Top {AI_PREDICTION_TOP_LIMIT} predicted recipes
+								Top {AI_PREDICTION_TOP_LIMIT} {isLive ? 'precomputed' : 'predicted'} recipes
 							</h4>
+							{isLive && (
+								<p className="text-xs text-slate-500 dark:text-slate-400">
+									Scored ahead of time with the full model on the fixed grid of conditions.
+								</p>
+							)}
 
 							{topError && <p className="text-sm text-rose-600 dark:text-rose-400">{topError}</p>}
 
@@ -186,7 +477,7 @@ const AiPredictions: React.FC<AiPredictionsProps> = ({ isOpen, onClose }) => {
 										{(top ?? []).map((row, i) => (
 											<tr
 												key={i}
-												onClick={() => setRecipe(row.recipe)}
+												onClick={() => loadRecipe(row.recipe)}
 												className="border-t border-slate-100 dark:border-slate-800 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 cursor-pointer"
 												title="Load this recipe below"
 											>
@@ -201,45 +492,97 @@ const AiPredictions: React.FC<AiPredictionsProps> = ({ isOpen, onClose }) => {
 									</tbody>
 								</table>
 							</div>
-							<p className="text-xs text-slate-400">Click a row to load it into the recipe checker.</p>
+							<p className="text-xs text-slate-400">
+								{isLive
+									? 'Click a row to load it into the form below, then run the live model.'
+									: 'Click a row to load it into the recipe checker.'}
+							</p>
 						</section>
 					)}
 
 					{/* Single recipe */}
-					<section className="space-y-3">
-						<h4 className="flex items-center gap-2 text-sm font-semibold text-slate-800 dark:text-slate-100">
-							<FlaskConical size={16} className="text-indigo-600 dark:text-indigo-400" />
-							Check a specific recipe
-						</h4>
-
-						<div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-							{CONDITION_FIELDS.map(field => renderSelect(field))}
-						</div>
-
-						<div className="p-4 rounded-lg bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-800/50">
-							{!metal || !linker ? (
-								<p className="text-sm text-slate-500 dark:text-slate-400">Select a metal precursor and a linker to score this recipe.</p>
-							) : predictionError ? (
-								<p className="text-sm text-rose-600 dark:text-rose-400">{predictionError}</p>
-							) : prediction ? (
-								<div className={`flex flex-col sm:flex-row sm:items-center gap-3 ${predictionLoading ? 'opacity-50' : ''}`}>
-									<div className="flex-1">
-										<ScoreBar score={prediction.score} pred={prediction.pred} />
-									</div>
-									<span className={`text-sm font-semibold ${prediction.pred === 'P' ? 'text-emerald-700 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
-										{prediction.pred === 'P' ? 'Likely crystalline' : 'Unlikely to crystallize'}
+					{isLive ? (
+						<form
+							noValidate
+							onSubmit={(e) => {
+								e.preventDefault();
+								runLive();
+							}}
+							className="space-y-3"
+						>
+							<div className="flex flex-wrap items-center justify-between gap-2">
+								<h4 className="flex items-center gap-2 text-sm font-semibold text-slate-800 dark:text-slate-100">
+									<FlaskConical size={16} className="text-indigo-600 dark:text-indigo-400" />
+									Check a specific recipe
+								</h4>
+								{statusDot && (
+									<span className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
+										<span className={`inline-block w-2 h-2 rounded-full ${statusDot.dot}`} />
+										{statusDot.text}
 									</span>
-								</div>
-							) : (
-								<p className="text-sm text-slate-500 dark:text-slate-400">Scoring…</p>
-							)}
-						</div>
-					</section>
+								)}
+							</div>
 
-					<p className="text-xs text-slate-400 dark:text-slate-500">
-						Scores are precomputed by the MOFinder model for 1,000,000 recipes on a fixed grid of conditions
-						{prediction ? ` (model ${prediction.model})` : ''}.
-					</p>
+							<div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+								{CONDITION_FIELDS.filter(f => !f.numeric).map(field => renderSelect(field))}
+								{NUMERIC_FIELDS.map((field, i) => renderNumberInput(field, i))}
+							</div>
+
+							<button
+								type="submit"
+								disabled={!liveRecipe || isRunning}
+								className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
+							>
+								<Play size={14} />
+								{isRunning ? 'Running…' : 'Run live model'}
+							</button>
+
+							<div className="p-4 rounded-lg bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-800/50" aria-live="polite">
+								{renderLiveResult()}
+							</div>
+						</form>
+					) : (
+						<section className="space-y-3">
+							<h4 className="flex items-center gap-2 text-sm font-semibold text-slate-800 dark:text-slate-100">
+								<FlaskConical size={16} className="text-indigo-600 dark:text-indigo-400" />
+								Check a specific recipe
+							</h4>
+
+							<div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+								{CONDITION_FIELDS.map(field => renderSelect(field))}
+							</div>
+
+							<div className="p-4 rounded-lg bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-800/50">
+								{!metal || !linker ? (
+									<p className="text-sm text-slate-500 dark:text-slate-400">Select a metal precursor and a linker to score this recipe.</p>
+								) : predictionError ? (
+									<p className="text-sm text-rose-600 dark:text-rose-400">{predictionError}</p>
+								) : prediction ? (
+									<div className={`flex flex-col sm:flex-row sm:items-center gap-3 ${predictionLoading ? 'opacity-50' : ''}`}>
+										<div className="flex-1">
+											<ScoreBar score={prediction.score} pred={prediction.pred} />
+										</div>
+										<PredLabel pred={prediction.pred} />
+									</div>
+								) : (
+									<p className="text-sm text-slate-500 dark:text-slate-400">Scoring…</p>
+								)}
+							</div>
+						</section>
+					)}
+
+					{isLive ? (
+						<p className="text-xs text-slate-400 dark:text-slate-500">
+							Live scores come from a quantized (compressed) copy of GPT-oss-MOFinder running on the lab server, so they can
+							differ slightly from the precomputed scores. The full model is on{' '}
+							<FullModelLink url={fullModelUrl} />.
+						</p>
+					) : (
+						<p className="text-xs text-slate-400 dark:text-slate-500">
+							Scores are precomputed by the MOFinder model for 1,000,000 recipes on a fixed grid of conditions
+							{prediction ? ` (model ${prediction.model})` : ''}.
+						</p>
+					)}
 				</div>
 			</div>
 		</div>
