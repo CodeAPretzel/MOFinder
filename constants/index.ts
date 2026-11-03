@@ -55,6 +55,9 @@ export const AI_PREDICTION_FIELDS: Array<{
 
 export const AI_PREDICTION_TOP_LIMIT = 10;
 
+// Live mode: most recipes one submit can score (they run one at a time)
+export const AI_PREDICTION_LIVE_MAX_RECIPES = 10;
+
 // Numbers users may type for the live model: 1st-99th percentiles of the training data, rounded outward
 export const AI_PREDICTION_NUMERIC_RANGES: AiPredictionNumericRanges = {
 	metal_concentration_mM: { min: 2, max: 2000, step: 1 },

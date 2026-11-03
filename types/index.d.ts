@@ -188,6 +188,11 @@ declare interface AiPredictionsProps {
   onClose: () => void;
 }
 
+declare interface LivePredictionsProps {
+  options: AiPredictionOptions | null;
+  ranges: AiPredictionNumericRanges;
+}
+
 declare interface DetailModalProps {
 	mof: MofEntry;
 	onClose: () => void;
