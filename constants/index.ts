@@ -53,12 +53,28 @@ export const AI_PREDICTION_FIELDS: Array<{
 	{ key: "time_h", label: "Time", unit: "h", numeric: true },
 ];
 
-export const AI_PREDICTION_TOP_LIMIT = 10;
-
-// Live mode: most recipes one submit can score (they run one at a time)
+// Most recipes one submit can score (they run one at a time)
 export const AI_PREDICTION_LIVE_MAX_RECIPES = 10;
 
-// Numbers users may type for the live model: 1st-99th percentiles of the training data, rounded outward
+// Metal precursor and organic linker are typed; the model server takes names up to this length
+export const AI_PREDICTION_TEXT_MAX_LENGTH = 100;
+export const AI_PREDICTION_TEXT_FIELDS: AiPredictionTextField[] = ["metal_precursor", "organic_linker"];
+
+// Modulator and solvent are chosen from the values the model server accepts
+export const AI_PREDICTION_CHOICES: Record<AiPredictionChoiceField, string[]> = {
+	modulator: ["none", "acetic acid", "formic acid", "sodium hydroxide", "hydrochloric acid"],
+	solvent: ["water", "dimethylformamide"],
+};
+
+// Starting numbers for a new recipe
+export const AI_PREDICTION_DEFAULT_NUMBERS: Record<AiPredictionNumericField, string> = {
+	metal_concentration_mM: "50",
+	M_L_ratio: "1",
+	temperature_C: "120",
+	time_h: "24",
+};
+
+// Numbers users may type: 1st-99th percentiles of the training data, rounded outward
 export const AI_PREDICTION_NUMERIC_RANGES: AiPredictionNumericRanges = {
 	metal_concentration_mM: { min: 2, max: 2000, step: 1 },
 	M_L_ratio: { min: 0.05, max: 20, step: 0.05 },

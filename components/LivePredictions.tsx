@@ -2,18 +2,27 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import { ChevronDown, FlaskConical, Plus, Send, Trash2 } from 'lucide-react';
-import { AI_PREDICTION_FIELDS, AI_PREDICTION_LIVE_MAX_RECIPES } from '@/constants';
+import {
+	AI_PREDICTION_CHOICES,
+	AI_PREDICTION_DEFAULT_NUMBERS,
+	AI_PREDICTION_FIELDS,
+	AI_PREDICTION_LIVE_MAX_RECIPES,
+	AI_PREDICTION_NUMERIC_RANGES,
+	AI_PREDICTION_TEXT_MAX_LENGTH,
+} from '@/constants';
 import { fetchLivePrediction, fetchPredictionStatus } from '@/app/api/ai-prediction/handler';
-import { checkNumericValue, formatPredictionValue, isNumericField, isOnGrid } from '@/lib/prediction';
+import { checkNumericValue, checkTextValue, formatPredictionValue, isNumericField, isTextField } from '@/lib/prediction';
 import { PredLabel, ScoreBar } from '@/components/PredictionScore';
 
-type ChoiceField = 'metal_precursor' | 'organic_linker' | 'modulator' | 'solvent';
+type TextDrafts = Record<AiPredictionTextField, string>;
+type Choices = Record<AiPredictionChoiceField, string>;
 type NumberDrafts = Record<AiPredictionNumericField, string>;
 type CardState = 'idle' | 'queued' | 'running' | 'waiting' | 'done' | 'error' | 'cancelled';
 
 type RecipeCard = {
 	id: number;
-	choices: Partial<Record<ChoiceField, string>>;
+	texts: TextDrafts;
+	choices: Choices;
 	drafts: NumberDrafts;
 	state: CardState;
 	result?: SynthesisPrediction;
@@ -22,12 +31,17 @@ type RecipeCard = {
 	message?: string;
 };
 
-const PAIR_FIELDS = AI_PREDICTION_FIELDS.filter(f => f.key === 'metal_precursor' || f.key === 'organic_linker');
-const CONDITION_CHOICES = AI_PREDICTION_FIELDS.filter(f => f.key === 'modulator' || f.key === 'solvent');
+const TEXT_FIELDS = AI_PREDICTION_FIELDS.filter(f => isTextField(f.key));
+const CHOICE_FIELDS = AI_PREDICTION_FIELDS.filter(f => f.key === 'modulator' || f.key === 'solvent');
 const NUMERIC_FIELDS = AI_PREDICTION_FIELDS.filter(f => isNumericField(f.key));
 
 const SELECT_CLASS = "w-full p-2.5 pl-3 pr-8 text-sm bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg appearance-none focus:ring-2 focus:ring-indigo-500 focus:outline-none dark:text-slate-200 disabled:opacity-60";
 const INPUT_CLASS = "w-full p-2.5 pl-3 text-sm bg-white dark:bg-slate-800 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none dark:text-slate-200 disabled:opacity-60";
+
+const TEXT_PLACEHOLDERS: Record<AiPredictionTextField, string> = {
+	metal_precursor: 'e.g. Zn(NO3)2·6H2O',
+	organic_linker: 'e.g. terephthalic acid',
+};
 
 const STATUS_POLL_MS = 30_000;
 // A recipe the server turns away as busy or rate limited waits and tries again
@@ -35,30 +49,37 @@ const MAX_RETRIES = 3;
 const DEFAULT_RETRY_S = 10;
 
 const STATUS_DOT: Record<AiPredictionLiveStatus, { dot: string; text: string }> = {
-	online: { dot: 'bg-emerald-500', text: 'Live model online' },
-	busy: { dot: 'bg-amber-400', text: 'Live model busy' },
-	offline: { dot: 'bg-rose-500', text: 'Live model offline' },
-	disabled: { dot: 'bg-slate-400', text: 'Live model off' },
+	online: { dot: 'bg-emerald-500', text: 'Model online' },
+	busy: { dot: 'bg-amber-400', text: 'Model busy' },
+	offline: { dot: 'bg-rose-500', text: 'Model offline' },
 };
+
+function newCard(id: number): RecipeCard {
+	return {
+		id,
+		texts: { metal_precursor: '', organic_linker: '' },
+		choices: { modulator: AI_PREDICTION_CHOICES.modulator[0], solvent: AI_PREDICTION_CHOICES.solvent[0] },
+		drafts: { ...AI_PREDICTION_DEFAULT_NUMBERS },
+		state: 'idle',
+	};
+}
 
 function recipeKey(recipe: SynthesisRecipe): string {
 	return AI_PREDICTION_FIELDS.map(({ key }) => recipe[key]).join('|');
 }
 
-// The recipe a card describes, or null while a choice is missing or a number is invalid
+// The recipe a card describes, or null while a name is missing or a value is invalid
 function checkCard(card: RecipeCard) {
+	const textChecks = TEXT_FIELDS.map(({ key }) => checkTextValue(key as AiPredictionTextField, card.texts[key as AiPredictionTextField]));
 	const checks = NUMERIC_FIELDS.map(({ key }) => checkNumericValue(key as AiPredictionNumericField, card.drafts[key as AiPredictionNumericField]));
-	const { metal_precursor, organic_linker, modulator, solvent } = card.choices;
-	const recipe: SynthesisRecipe | null = metal_precursor && organic_linker && modulator && solvent && checks.every(c => c.error == null)
+	const recipe: SynthesisRecipe | null = textChecks.every(c => c.error == null) && checks.every(c => c.error == null)
 		? {
-			metal_precursor,
-			organic_linker,
-			modulator,
-			solvent,
+			...Object.fromEntries(TEXT_FIELDS.map(({ key }, i) => [key, textChecks[i].value])),
+			...card.choices,
 			...Object.fromEntries(NUMERIC_FIELDS.map(({ key }, i) => [key, checks[i].value])),
 		} as SynthesisRecipe
 		: null;
-	return { checks, recipe };
+	return { textChecks, checks, recipe };
 }
 
 // Already scored with exactly these values, so a submit can skip it
@@ -68,17 +89,19 @@ function isUpToDate(card: RecipeCard, recipe: SynthesisRecipe | null): boolean {
 
 function liveErrorMessage(code: AiPredictionErrorCode, message: string, retryAfter?: number): string {
 	if (code === 'rate_limited' && retryAfter) {
-		return `Too many live predictions from your connection. Please try again in about ${retryAfter} s.`;
+		return `Too many predictions from your connection. Please try again in about ${retryAfter} s.`;
 	}
 	return message;
 }
 
 const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
-const LivePredictions: React.FC<LivePredictionsProps> = ({ options, ranges }) => {
-	const [cards, setCards] = useState<RecipeCard[]>([]);
-	const cardsRef = useRef<RecipeCard[]>([]);
-	const nextIdRef = useRef(1);
+const LivePredictions: React.FC = () => {
+	const [cards, setCards] = useState<RecipeCard[]>(() => [newCard(1)]);
+	const cardsRef = useRef<RecipeCard[]>(cards);
+	const nextIdRef = useRef(2);
+	// A name box shows its message once it has been typed in, or after a submit
+	const [touched, setTouched] = useState<Set<string>>(() => new Set());
 
 	const [liveStatus, setLiveStatus] = useState<AiPredictionLiveStatus | null>(null);
 	const [isRunning, setIsRunning] = useState(false);
@@ -88,18 +111,6 @@ const LivePredictions: React.FC<LivePredictionsProps> = ({ options, ranges }) =>
 	const abortRef = useRef<AbortController | null>(null);
 
 	useEffect(() => { cardsRef.current = cards; }, [cards]);
-
-	// First card once the dropdown choices are in: no pair yet, first choice of the rest
-	useEffect(() => {
-		if (!options || cards.length > 0) return;
-		const drafts = Object.fromEntries(NUMERIC_FIELDS.map(({ key }) => [key, String(options[key][0])])) as NumberDrafts;
-		setCards([{
-			id: nextIdRef.current++,
-			choices: { modulator: String(options.modulator[0]), solvent: String(options.solvent[0]) },
-			drafts,
-			state: 'idle',
-		}]);
-	}, [options, cards.length]);
 
 	// Status dot, refreshed while the panel is open
 	useEffect(() => {
@@ -133,8 +144,14 @@ const LivePredictions: React.FC<LivePredictionsProps> = ({ options, ranges }) =>
 	const updateCard = (id: number, patch: Partial<RecipeCard>) =>
 		setCards(prev => prev.map(c => c.id === id ? { ...c, ...patch } : c));
 
-	const setChoice = (id: number, key: ChoiceField, value: string) =>
-		setCards(prev => prev.map(c => c.id === id ? { ...c, choices: { ...c.choices, [key]: value || undefined } } : c));
+	const setText = (id: number, key: AiPredictionTextField, value: string) =>
+		setCards(prev => prev.map(c => c.id === id ? { ...c, texts: { ...c.texts, [key]: value } } : c));
+
+	const touch = (id: number, key: string) =>
+		setTouched(prev => prev.has(`${id}:${key}`) ? prev : new Set(prev).add(`${id}:${key}`));
+
+	const setChoice = (id: number, key: AiPredictionChoiceField, value: string) =>
+		setCards(prev => prev.map(c => c.id === id ? { ...c, choices: { ...c.choices, [key]: value } } : c));
 
 	const setDraft = (id: number, key: AiPredictionNumericField, value: string) =>
 		setCards(prev => prev.map(c => c.id === id ? { ...c, drafts: { ...c.drafts, [key]: value } } : c));
@@ -145,6 +162,7 @@ const LivePredictions: React.FC<LivePredictionsProps> = ({ options, ranges }) =>
 		const last = prev[prev.length - 1];
 		return [...prev, {
 			id: nextIdRef.current++,
+			texts: { ...last.texts },
 			choices: { ...last.choices },
 			drafts: { ...last.drafts },
 			state: 'idle',
@@ -194,6 +212,8 @@ const LivePredictions: React.FC<LivePredictionsProps> = ({ options, ranges }) =>
 	// Scores every card that needs it, one at a time, top to bottom
 	const submit = async () => {
 		if (isRunning) return;
+		// Show what is still missing on every card
+		setTouched(new Set(cardsRef.current.flatMap(c => TEXT_FIELDS.map(({ key }) => `${c.id}:${key}`))));
 		const todo = cardsRef.current
 			.filter(c => {
 				const { recipe } = checkCard(c);
@@ -234,21 +254,52 @@ const LivePredictions: React.FC<LivePredictionsProps> = ({ options, ranges }) =>
 
 	const checked = cards.map(c => ({ card: c, ...checkCard(c) }));
 	const toRun = checked.filter(({ card, recipe }) => recipe != null && !isUpToDate(card, recipe)).length;
+	// Submit stays clickable while names are missing, so a click can point them out
+	const nothingToDo = toRun === 0 && checked.every(({ recipe }) => recipe != null);
 	const statusDot = liveStatus ? STATUS_DOT[liveStatus] : null;
 
-	const renderSelect = (card: RecipeCard, { key, label }: (typeof AI_PREDICTION_FIELDS)[number], placeholder?: string) => (
+	// Typed name: any metal precursor or linker
+	const renderTextInput = (card: RecipeCard, textChecks: ReturnType<typeof checkCard>['textChecks'], { key, label }: (typeof AI_PREDICTION_FIELDS)[number], index: number) => {
+		const textKey = key as AiPredictionTextField;
+		const error = touched.has(`${card.id}:${key}`) ? textChecks[index].error : null;
+		const hintId = `ai-pred-${card.id}-${key}-hint`;
+
+		return (
+			<label key={key} className="block">
+				<span className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">{label}</span>
+				<input
+					type="text"
+					value={card.texts[textKey]}
+					onChange={(e) => {
+						setText(card.id, textKey, e.target.value);
+						touch(card.id, key);
+					}}
+					placeholder={TEXT_PLACEHOLDERS[textKey]}
+					maxLength={AI_PREDICTION_TEXT_MAX_LENGTH + 20}
+					autoComplete="off"
+					spellCheck={false}
+					disabled={isRunning}
+					aria-invalid={error != null}
+					aria-describedby={error ? hintId : undefined}
+					className={`${INPUT_CLASS} ${error ? 'border-rose-400 dark:border-rose-500' : 'border-slate-200 dark:border-slate-700'}`}
+				/>
+				{error && <span id={hintId} className="block mt-1 text-xs text-rose-600 dark:text-rose-400">{error}</span>}
+			</label>
+		);
+	};
+
+	const renderSelect = (card: RecipeCard, { key, label }: (typeof AI_PREDICTION_FIELDS)[number]) => (
 		<label key={key} className="block">
 			<span className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">{label}</span>
 			<div className="relative">
 				<select
-					value={card.choices[key as ChoiceField] ?? ''}
-					onChange={(e) => setChoice(card.id, key as ChoiceField, e.target.value)}
-					disabled={!options || isRunning}
+					value={card.choices[key as AiPredictionChoiceField]}
+					onChange={(e) => setChoice(card.id, key as AiPredictionChoiceField, e.target.value)}
+					disabled={isRunning}
 					className={SELECT_CLASS}
 				>
-					{placeholder && <option value="">{placeholder}</option>}
-					{(options?.[key] ?? []).map(value =>
-						<option key={String(value)} value={value}>{formatPredictionValue(key, value)}</option>
+					{AI_PREDICTION_CHOICES[key as AiPredictionChoiceField].map(value =>
+						<option key={value} value={value}>{formatPredictionValue(key, value)}</option>
 					)}
 				</select>
 				<ChevronDown className="absolute right-3 top-3 text-slate-400 pointer-events-none" size={16} />
@@ -256,10 +307,10 @@ const LivePredictions: React.FC<LivePredictionsProps> = ({ options, ranges }) =>
 		</label>
 	);
 
-	// Typed number with the grid values offered as suggestions
+	// Typed number within the training range
 	const renderNumberInput = (card: RecipeCard, checks: ReturnType<typeof checkCard>['checks'], { key, label, unit }: (typeof AI_PREDICTION_FIELDS)[number], index: number) => {
 		const numericKey = key as AiPredictionNumericField;
-		const { min, max, step } = ranges[numericKey];
+		const { min, max, step } = AI_PREDICTION_NUMERIC_RANGES[numericKey];
 		const { error } = checks[index];
 		const hintId = `ai-pred-${card.id}-${key}-hint`;
 
@@ -274,10 +325,9 @@ const LivePredictions: React.FC<LivePredictionsProps> = ({ options, ranges }) =>
 					min={min}
 					max={max}
 					step={step}
-					list={`ai-pred-${key}-grid`}
 					value={card.drafts[numericKey]}
 					onChange={(e) => setDraft(card.id, numericKey, e.target.value)}
-					disabled={!options || isRunning}
+					disabled={isRunning}
 					aria-invalid={error != null}
 					aria-describedby={hintId}
 					className={`${INPUT_CLASS} ${error ? 'border-rose-400 dark:border-rose-500' : 'border-slate-200 dark:border-slate-700'}`}
@@ -296,7 +346,7 @@ const LivePredictions: React.FC<LivePredictionsProps> = ({ options, ranges }) =>
 		if (card.state === 'running') {
 			return (
 				<p className="text-sm text-slate-600 dark:text-slate-300">
-					Running the live model… <span aria-hidden="true">{elapsed} s</span>
+					Running the model… <span aria-hidden="true">{elapsed} s</span>
 				</p>
 			);
 		}
@@ -312,9 +362,9 @@ const LivePredictions: React.FC<LivePredictionsProps> = ({ options, ranges }) =>
 			if (note) return note;
 			return (
 				<p className="text-sm text-slate-500 dark:text-slate-400">
-					{card.choices.metal_precursor && card.choices.organic_linker
+					{card.texts.metal_precursor.trim() && card.texts.organic_linker.trim()
 						? 'Not submitted yet.'
-						: 'Select a metal precursor and a linker.'}
+						: 'Type a metal precursor and an organic linker, then submit.'}
 				</p>
 			);
 		}
@@ -331,19 +381,13 @@ const LivePredictions: React.FC<LivePredictionsProps> = ({ options, ranges }) =>
 					<PredLabel pred={result.pred} />
 				</div>
 				<div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500 dark:text-slate-400">
-					<span className="px-2 py-0.5 rounded-full bg-indigo-600 text-white font-medium">Live model</span>
-					{/* The model server's mock backend (a wiring test) answers from the precomputed table */}
+					{/* The model server's mock backend (a wiring test, no model) */}
 					{/mock|test mode/i.test(result.model) && (
 						<span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-200">
 							{result.model}
 						</span>
 					)}
-					{result.latencyMs != null && <span>{(result.latencyMs / 1000).toFixed(1)} s</span>}
-					{result.precomputedScore != null ? (
-						<span>Full model (precomputed): <span className="font-mono">{result.precomputedScore.toFixed(3)}</span></span>
-					) : options && !isOnGrid(result.recipe, options) ? (
-						<span>Not on the precomputed grid, so there is no full-model score to compare.</span>
-					) : null}
+					{result.latencyMs != null && <span>Answered in {(result.latencyMs / 1000).toFixed(1)} s</span>}
 				</div>
 				{changed && <p className="text-xs text-slate-500 dark:text-slate-400">The conditions changed since this run. Submit to score them.</p>}
 			</div>
@@ -372,14 +416,7 @@ const LivePredictions: React.FC<LivePredictionsProps> = ({ options, ranges }) =>
 				)}
 			</div>
 
-			{/* Shared by every card's number inputs */}
-			{NUMERIC_FIELDS.map(({ key }) => (
-				<datalist key={key} id={`ai-pred-${key}-grid`}>
-					{(options?.[key] ?? []).map(value => <option key={String(value)} value={value} />)}
-				</datalist>
-			))}
-
-			{checked.map(({ card, checks, recipe }, index) => (
+			{checked.map(({ card, textChecks, checks, recipe }, index) => (
 				<section key={card.id} className="p-4 space-y-3 rounded-xl border border-slate-200 dark:border-slate-800">
 					{cards.length > 1 && (
 						<div className="flex items-center justify-between">
@@ -397,10 +434,10 @@ const LivePredictions: React.FC<LivePredictionsProps> = ({ options, ranges }) =>
 					)}
 
 					<div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-						{PAIR_FIELDS.map(field => renderSelect(card, field, `Select ${field.label.toLowerCase()}`))}
+						{TEXT_FIELDS.map((field, i) => renderTextInput(card, textChecks, field, i))}
 					</div>
 					<div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-						{CONDITION_CHOICES.map(field => renderSelect(card, field))}
+						{CHOICE_FIELDS.map(field => renderSelect(card, field))}
 						{NUMERIC_FIELDS.map((field, i) => renderNumberInput(card, checks, field, i))}
 					</div>
 
@@ -422,7 +459,7 @@ const LivePredictions: React.FC<LivePredictionsProps> = ({ options, ranges }) =>
 				) : (
 					<button
 						type="submit"
-						disabled={toRun === 0}
+						disabled={nothingToDo}
 						className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
 					>
 						<Send size={14} />
@@ -432,7 +469,7 @@ const LivePredictions: React.FC<LivePredictionsProps> = ({ options, ranges }) =>
 				<button
 					type="button"
 					onClick={addCard}
-					disabled={isRunning || cards.length === 0 || cards.length >= AI_PREDICTION_LIVE_MAX_RECIPES}
+					disabled={isRunning || cards.length >= AI_PREDICTION_LIVE_MAX_RECIPES}
 					className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg border border-indigo-200 dark:border-indigo-800 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 disabled:opacity-50 disabled:cursor-not-allowed"
 				>
 					<Plus size={14} />

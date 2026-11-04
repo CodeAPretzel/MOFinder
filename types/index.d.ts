@@ -33,18 +33,13 @@ declare type SynthesisPrediction = {
 	score: number;
 	pred: "P" | "N";
 	model: string;
-	// Only set when the live model answered (AI_PREDICTION_MODE=live)
-	source?: "live" | "precomputed";
-	precomputedScore?: number;
 	latencyMs?: number;
 	cached?: boolean;
 };
 
-declare type AiPredictionOptions = {
-	[K in AiPredictionField]: Array<SynthesisRecipe[K]>;
-};
+declare type AiPredictionTextField = "metal_precursor" | "organic_linker";
 
-declare type AiPredictionMode = "precomputed" | "live";
+declare type AiPredictionChoiceField = "modulator" | "solvent";
 
 declare type AiPredictionNumericField = "metal_concentration_mM" | "M_L_ratio" | "temperature_C" | "time_h";
 
@@ -52,20 +47,9 @@ declare type AiPredictionNumericRanges = {
 	[K in AiPredictionNumericField]: { min: number; max: number; step: number };
 };
 
-declare type AiPredictionConfig = {
-	mode: AiPredictionMode;
-	numericRanges: AiPredictionNumericRanges;
-	liveModel: {
-		label: string;
-		quantized: true;
-		fullModelUrl: string;
-	};
-};
-
-declare type AiPredictionLiveStatus = "online" | "offline" | "busy" | "disabled";
+declare type AiPredictionLiveStatus = "online" | "offline" | "busy";
 
 declare type AiPredictionStatus = {
-	mode: AiPredictionMode;
 	live: AiPredictionLiveStatus;
 };
 
@@ -186,11 +170,6 @@ declare type MofEntry = {
 declare interface AiPredictionsProps {
   isOpen: boolean;
   onClose: () => void;
-}
-
-declare interface LivePredictionsProps {
-  options: AiPredictionOptions | null;
-  ranges: AiPredictionNumericRanges;
 }
 
 declare interface DetailModalProps {

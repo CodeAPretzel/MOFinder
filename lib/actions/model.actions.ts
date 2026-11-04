@@ -1,8 +1,7 @@
-// Plan B: ask the live model server (model-server/ in this repo) to score one
+// Ask the live model server (model-server/ in this repo) to score one
 // recipe. Server-only: the model server URL and API key never reach the browser.
 //
 // Settings (process.env, read on the server):
-//   AI_PREDICTION_MODE                 "precomputed" (default) or "live"
 //   MODEL_SERVER_URL                   default http://127.0.0.1:8765
 //   MODEL_SERVER_API_KEY               sent as "Authorization: Bearer <key>" when set
 //   MODEL_SERVER_TIMEOUT_MS            default 55000 (below nginx's default proxy_read_timeout of 60 s)
@@ -24,10 +23,6 @@ function envNumber(name: string, fallback: number): number {
 	if (!raw) return fallback;
 	const value = Number(raw);
 	return Number.isFinite(value) && value >= 0 ? value : fallback;
-}
-
-export function getPredictionMode(): AiPredictionMode {
-	return process.env.AI_PREDICTION_MODE?.trim().toLowerCase() === "live" ? "live" : "precomputed";
 }
 
 export function getLiveSettings() {
@@ -63,14 +58,12 @@ export type LiveFailure = {
 
 export type LiveResult = { ok: true; data: LivePrediction } | ({ ok: false } & LiveFailure);
 
-// The model server's label. The mock backend answers from the precomputed table,
-// so say so even when MOFINDER_MODEL_MODEL_NAME hides it, and say when it moved
-// a typed number to the nearest grid value.
+// The model server's label. The mock backend (a wiring test, no model) says so
+// even when MOFINDER_MODEL_MODEL_NAME hides it.
 function modelLabel(data: any): string {
 	let label = typeof data?.model === "string" && data.model ? data.model : DEFAULT_MODEL_LABEL;
 	if (data?.backend === "mock") {
-		if (!/mock|test/i.test(label)) label += " (test mode: precomputed table)";
-		if (data.mock_snapped === true) label += ", numbers moved to the nearest grid value";
+		if (!/mock|test/i.test(label)) label += " (test mode)";
 	}
 	return label;
 }
@@ -188,9 +181,4 @@ export function getModelHealth(): Promise<ModelHealth | null> {
 	const value = loadHealth();
 	cache.__modelHealth = { at: Date.now(), value };
 	return value;
-}
-
-export async function getLiveModelLabel(): Promise<string> {
-	const health = await getModelHealth();
-	return health?.model || DEFAULT_MODEL_LABEL;
 }

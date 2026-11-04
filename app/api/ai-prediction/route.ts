@@ -1,51 +1,14 @@
 import { NextResponse } from "next/server";
-import { getPredictionOptions, predictRecipe } from "@/lib/actions/prediction.actions";
-import { getLiveSettings, getPredictionMode, predictLive } from "@/lib/actions/model.actions";
+import { getLiveSettings, predictLive } from "@/lib/actions/model.actions";
 import { acquireLiveSlot, clientKey, refundRateToken, takeRateToken } from "@/lib/live-limits";
-import { isOnGrid, missingFields, parseRecipeParams } from "@/lib/prediction";
+import { missingFields, parseRecipeParams } from "@/lib/prediction";
 import { AI_PREDICTION_FIELDS, AI_PREDICTION_LIVE_MESSAGES } from "@/constants";
 
 export const runtime = "nodejs";
 
-// Score one full recipe: every field in AI_PREDICTION_FIELDS is required
+// Score one full recipe with the live model: every field in AI_PREDICTION_FIELDS is required
 export async function GET(req: Request) {
-	if (getPredictionMode() === "live") {
-		return livePrediction(req);
-	}
-
-	try {
-		const url = new URL(req.url);
-		const options = await getPredictionOptions();
-		const { recipe, error } = parseRecipeParams(url.searchParams, options);
-
-		if (error) {
-			return NextResponse.json({ error }, { status: 400 });
-		}
-
-		const missing = missingFields(recipe, AI_PREDICTION_FIELDS.map((f) => f.key));
-		if (missing.length) {
-			return NextResponse.json(
-				{ error: `Missing required query parameters: ${missing.join(", ")}` },
-				{ status: 400 }
-			);
-		}
-
-		const prediction = await predictRecipe(recipe as SynthesisRecipe);
-		if (!prediction) {
-			return NextResponse.json({ error: "No prediction for this recipe" }, { status: 404 });
-		}
-
-		return NextResponse.json(prediction, {
-			headers: {
-				"Cache-Control": "public, s-maxage=3600, stale-while-revalidate=86400",
-			},
-		});
-	} catch (err: any) {
-		return NextResponse.json(
-			{ error: "Failed to load prediction", detail: err?.message ?? String(err) },
-			{ status: 500 }
-		);
-	}
+	return livePrediction(req);
 }
 
 // Live answers are never cached by nginx or the browser: the model server keeps
@@ -72,41 +35,13 @@ function liveError(code: AiPredictionErrorCode, { error, retryAfter }: { error?:
 	);
 }
 
-// The precomputed score is only extra information, so a slow or failing
-// database must not hold up or break the live answer
-const PRECOMPUTED_LOOKUP_TIMEOUT_MS = 3000;
-
-function precomputedScore(recipe: SynthesisRecipe): Promise<SynthesisPrediction | null> {
-	let timer: ReturnType<typeof setTimeout> | undefined;
-	const timeout = new Promise<null>((resolve) => {
-		timer = setTimeout(() => resolve(null), PRECOMPUTED_LOOKUP_TIMEOUT_MS);
-	});
-	const lookup = predictRecipe(recipe).catch((err) => {
-		console.error("[ai-prediction] precomputed lookup failed:", err?.message ?? err);
-		return null;
-	});
-	return Promise.race([lookup, timeout]).finally(() => clearTimeout(timer));
-}
-
 let warnedSharedBucket = false;
 
-// Plan B: categorical fields still come from the grid, numbers can be typed
-// within AI_PREDICTION_NUMERIC_RANGES. The precomputed score is looked up too
-// when the recipe is on the grid, so the popup can show both.
+// Metal precursor and linker are typed names, modulator and solvent come from
+// AI_PREDICTION_CHOICES, numbers are typed within AI_PREDICTION_NUMERIC_RANGES
 async function livePrediction(req: Request) {
-	let options: AiPredictionOptions;
-	try {
-		options = await getPredictionOptions();
-	} catch (err: any) {
-		console.error("[ai-prediction] options failed:", err?.message ?? err);
-		return NextResponse.json(
-			{ error: "Failed to load prediction options" },
-			{ status: 500, headers: NO_STORE }
-		);
-	}
-
 	const url = new URL(req.url);
-	const { recipe, error } = parseRecipeParams(url.searchParams, options, { typedNumbers: true });
+	const { recipe, error } = parseRecipeParams(url.searchParams);
 
 	if (error) {
 		return liveError("invalid", { error });
@@ -145,10 +80,7 @@ async function livePrediction(req: Request) {
 		// keeps working on the request anyway, so the slot stays taken until the
 		// model answers or the site's timeout fires. Cancel in the popup only stops
 		// the browser waiting. The answer still lands in the model's result cache.
-		const [live, precomputed] = await Promise.all([
-			predictLive(full),
-			isOnGrid(full, options) ? precomputedScore(full) : Promise.resolve(null),
-		]);
+		const live = await predictLive(full);
 
 		if (!live.ok) {
 			console.error(`[ai-prediction] live model ${live.code}: ${live.detail}`);
@@ -162,11 +94,9 @@ async function livePrediction(req: Request) {
 			score: live.data.pP,
 			pred: live.data.pred,
 			model: live.data.model,
-			source: "live",
 			latencyMs: live.data.latencyMs,
 			cached: live.data.cached,
 		};
-		if (precomputed) prediction.precomputedScore = precomputed.score;
 
 		return NextResponse.json(prediction, { headers: NO_STORE });
 	} catch (err: any) {
