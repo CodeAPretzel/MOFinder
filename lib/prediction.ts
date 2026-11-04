@@ -1,6 +1,6 @@
 import {
-	AI_PREDICTION_CHOICES,
 	AI_PREDICTION_FIELDS,
+	AI_PREDICTION_NO_MODULATOR,
 	AI_PREDICTION_NUMERIC_RANGES,
 	AI_PREDICTION_TEXT_FIELDS,
 	AI_PREDICTION_TEXT_MAX_LENGTH,
@@ -23,8 +23,9 @@ function fieldLabel(key: AiPredictionField): string {
 	return AI_PREDICTION_FIELDS.find((f) => f.key === key)!.label;
 }
 
-// Check one typed name (metal precursor, linker): spaces tidied, length and characters checked.
-// Used by the API and by the popup's inline messages, so both say the same thing.
+// Check one typed name: spaces tidied, length and characters checked. A blank
+// (or "none") modulator means no modulator. Used by the API and by the popup's
+// inline messages, so both say the same thing.
 export function checkTextValue(
 	key: AiPredictionTextField,
 	raw: string
@@ -32,6 +33,9 @@ export function checkTextValue(
 	const label = fieldLabel(key);
 	const text = raw.replace(/\s+/g, " ").trim();
 
+	if (key === "modulator" && (!text || text.toLowerCase() === AI_PREDICTION_NO_MODULATOR)) {
+		return { value: AI_PREDICTION_NO_MODULATOR, error: null };
+	}
 	if (!text) {
 		return { value: null, error: `Enter the ${label.toLowerCase()}` };
 	}
@@ -78,9 +82,10 @@ export function checkNumericValue(
 export function parseRecipeParams(params: URLSearchParams): { recipe: Partial<SynthesisRecipe>; error: string | null } {
 	const recipe: Partial<SynthesisRecipe> = {};
 
-	for (const { key, label } of AI_PREDICTION_FIELDS) {
+	for (const { key } of AI_PREDICTION_FIELDS) {
 		const raw = params.get(key) ?? "";
-		if (!raw.trim()) continue;
+		// No modulator may also be sent as a blank or left out
+		if (!raw.trim() && key !== "modulator") continue;
 
 		if (isNumericField(key)) {
 			const { value, error } = checkNumericValue(key, raw);
@@ -90,12 +95,6 @@ export function parseRecipeParams(params: URLSearchParams): { recipe: Partial<Sy
 			const { value, error } = checkTextValue(key, raw);
 			if (error) return { recipe, error };
 			recipe[key] = value!;
-		} else {
-			const value = raw.trim();
-			if (!AI_PREDICTION_CHOICES[key as AiPredictionChoiceField].includes(value)) {
-				return { recipe, error: `Unsupported ${label.toLowerCase()}: ${value}` };
-			}
-			recipe[key as AiPredictionChoiceField] = value;
 		}
 	}
 

@@ -56,15 +56,12 @@ export const AI_PREDICTION_FIELDS: Array<{
 // Most recipes one submit can score (they run one at a time)
 export const AI_PREDICTION_LIVE_MAX_RECIPES = 10;
 
-// Metal precursor and organic linker are typed; the model server takes names up to this length
+// Names are typed; the model server takes names up to this length
 export const AI_PREDICTION_TEXT_MAX_LENGTH = 100;
-export const AI_PREDICTION_TEXT_FIELDS: AiPredictionTextField[] = ["metal_precursor", "organic_linker"];
+export const AI_PREDICTION_TEXT_FIELDS: AiPredictionTextField[] = ["metal_precursor", "organic_linker", "modulator", "solvent"];
 
-// Modulator and solvent are chosen from the values the model server accepts
-export const AI_PREDICTION_CHOICES: Record<AiPredictionChoiceField, string[]> = {
-	modulator: ["none", "acetic acid", "formic acid", "sodium hydroxide", "hydrochloric acid"],
-	solvent: ["water", "dimethylformamide"],
-};
+// How the site and the model server spell "no modulator" (a blank modulator box means this)
+export const AI_PREDICTION_NO_MODULATOR = "none";
 
 // Starting numbers for a new recipe
 export const AI_PREDICTION_DEFAULT_NUMBERS: Record<AiPredictionNumericField, string> = {

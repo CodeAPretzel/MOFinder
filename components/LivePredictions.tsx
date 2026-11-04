@@ -1,9 +1,8 @@
 "use client"
 
 import React, { useEffect, useRef, useState } from 'react';
-import { ChevronDown, FlaskConical, Plus, Send, Trash2 } from 'lucide-react';
+import { FlaskConical, Plus, Send, Trash2 } from 'lucide-react';
 import {
-	AI_PREDICTION_CHOICES,
 	AI_PREDICTION_DEFAULT_NUMBERS,
 	AI_PREDICTION_FIELDS,
 	AI_PREDICTION_LIVE_MAX_RECIPES,
@@ -15,14 +14,12 @@ import { checkNumericValue, checkTextValue, formatPredictionValue, isNumericFiel
 import { PredLabel, ScoreBar } from '@/components/PredictionScore';
 
 type TextDrafts = Record<AiPredictionTextField, string>;
-type Choices = Record<AiPredictionChoiceField, string>;
 type NumberDrafts = Record<AiPredictionNumericField, string>;
 type CardState = 'idle' | 'queued' | 'running' | 'waiting' | 'done' | 'error' | 'cancelled';
 
 type RecipeCard = {
 	id: number;
 	texts: TextDrafts;
-	choices: Choices;
 	drafts: NumberDrafts;
 	state: CardState;
 	result?: SynthesisPrediction;
@@ -32,15 +29,15 @@ type RecipeCard = {
 };
 
 const TEXT_FIELDS = AI_PREDICTION_FIELDS.filter(f => isTextField(f.key));
-const CHOICE_FIELDS = AI_PREDICTION_FIELDS.filter(f => f.key === 'modulator' || f.key === 'solvent');
 const NUMERIC_FIELDS = AI_PREDICTION_FIELDS.filter(f => isNumericField(f.key));
 
-const SELECT_CLASS = "w-full p-2.5 pl-3 pr-8 text-sm bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg appearance-none focus:ring-2 focus:ring-indigo-500 focus:outline-none dark:text-slate-200 disabled:opacity-60";
 const INPUT_CLASS = "w-full p-2.5 pl-3 text-sm bg-white dark:bg-slate-800 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none dark:text-slate-200 disabled:opacity-60";
 
 const TEXT_PLACEHOLDERS: Record<AiPredictionTextField, string> = {
 	metal_precursor: 'e.g. Zn(NO3)2·6H2O',
 	organic_linker: 'e.g. terephthalic acid',
+	modulator: 'e.g. acetic acid (blank = none)',
+	solvent: 'e.g. dimethylformamide',
 };
 
 const STATUS_POLL_MS = 30_000;
@@ -57,8 +54,7 @@ const STATUS_DOT: Record<AiPredictionLiveStatus, { dot: string; text: string }> 
 function newCard(id: number): RecipeCard {
 	return {
 		id,
-		texts: { metal_precursor: '', organic_linker: '' },
-		choices: { modulator: AI_PREDICTION_CHOICES.modulator[0], solvent: AI_PREDICTION_CHOICES.solvent[0] },
+		texts: { metal_precursor: '', organic_linker: '', modulator: '', solvent: '' },
 		drafts: { ...AI_PREDICTION_DEFAULT_NUMBERS },
 		state: 'idle',
 	};
@@ -75,7 +71,6 @@ function checkCard(card: RecipeCard) {
 	const recipe: SynthesisRecipe | null = textChecks.every(c => c.error == null) && checks.every(c => c.error == null)
 		? {
 			...Object.fromEntries(TEXT_FIELDS.map(({ key }, i) => [key, textChecks[i].value])),
-			...card.choices,
 			...Object.fromEntries(NUMERIC_FIELDS.map(({ key }, i) => [key, checks[i].value])),
 		} as SynthesisRecipe
 		: null;
@@ -150,9 +145,6 @@ const LivePredictions: React.FC = () => {
 	const touch = (id: number, key: string) =>
 		setTouched(prev => prev.has(`${id}:${key}`) ? prev : new Set(prev).add(`${id}:${key}`));
 
-	const setChoice = (id: number, key: AiPredictionChoiceField, value: string) =>
-		setCards(prev => prev.map(c => c.id === id ? { ...c, choices: { ...c.choices, [key]: value } } : c));
-
 	const setDraft = (id: number, key: AiPredictionNumericField, value: string) =>
 		setCards(prev => prev.map(c => c.id === id ? { ...c, drafts: { ...c.drafts, [key]: value } } : c));
 
@@ -163,7 +155,6 @@ const LivePredictions: React.FC = () => {
 		return [...prev, {
 			id: nextIdRef.current++,
 			texts: { ...last.texts },
-			choices: { ...last.choices },
 			drafts: { ...last.drafts },
 			state: 'idle',
 		}];
@@ -258,7 +249,7 @@ const LivePredictions: React.FC = () => {
 	const nothingToDo = toRun === 0 && checked.every(({ recipe }) => recipe != null);
 	const statusDot = liveStatus ? STATUS_DOT[liveStatus] : null;
 
-	// Typed name: any metal precursor or linker
+	// Typed name: any metal precursor, linker, modulator or solvent
 	const renderTextInput = (card: RecipeCard, textChecks: ReturnType<typeof checkCard>['textChecks'], { key, label }: (typeof AI_PREDICTION_FIELDS)[number], index: number) => {
 		const textKey = key as AiPredictionTextField;
 		const error = touched.has(`${card.id}:${key}`) ? textChecks[index].error : null;
@@ -287,25 +278,6 @@ const LivePredictions: React.FC = () => {
 			</label>
 		);
 	};
-
-	const renderSelect = (card: RecipeCard, { key, label }: (typeof AI_PREDICTION_FIELDS)[number]) => (
-		<label key={key} className="block">
-			<span className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">{label}</span>
-			<div className="relative">
-				<select
-					value={card.choices[key as AiPredictionChoiceField]}
-					onChange={(e) => setChoice(card.id, key as AiPredictionChoiceField, e.target.value)}
-					disabled={isRunning}
-					className={SELECT_CLASS}
-				>
-					{AI_PREDICTION_CHOICES[key as AiPredictionChoiceField].map(value =>
-						<option key={value} value={value}>{formatPredictionValue(key, value)}</option>
-					)}
-				</select>
-				<ChevronDown className="absolute right-3 top-3 text-slate-400 pointer-events-none" size={16} />
-			</div>
-		</label>
-	);
 
 	// Typed number within the training range
 	const renderNumberInput = (card: RecipeCard, checks: ReturnType<typeof checkCard>['checks'], { key, label, unit }: (typeof AI_PREDICTION_FIELDS)[number], index: number) => {
@@ -362,9 +334,7 @@ const LivePredictions: React.FC = () => {
 			if (note) return note;
 			return (
 				<p className="text-sm text-slate-500 dark:text-slate-400">
-					{card.texts.metal_precursor.trim() && card.texts.organic_linker.trim()
-						? 'Not submitted yet.'
-						: 'Type a metal precursor and an organic linker, then submit.'}
+					{recipe ? 'Not submitted yet.' : 'Fill in the recipe, then submit.'}
 				</p>
 			);
 		}
@@ -436,8 +406,7 @@ const LivePredictions: React.FC = () => {
 					<div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
 						{TEXT_FIELDS.map((field, i) => renderTextInput(card, textChecks, field, i))}
 					</div>
-					<div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-						{CHOICE_FIELDS.map(field => renderSelect(card, field))}
+					<div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
 						{NUMERIC_FIELDS.map((field, i) => renderNumberInput(card, checks, field, i))}
 					</div>
 

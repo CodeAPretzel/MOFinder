@@ -37,9 +37,7 @@ declare type SynthesisPrediction = {
 	cached?: boolean;
 };
 
-declare type AiPredictionTextField = "metal_precursor" | "organic_linker";
-
-declare type AiPredictionChoiceField = "modulator" | "solvent";
+declare type AiPredictionTextField = "metal_precursor" | "organic_linker" | "modulator" | "solvent";
 
 declare type AiPredictionNumericField = "metal_concentration_mM" | "M_L_ratio" | "temperature_C" | "time_h";
 
