@@ -24,7 +24,7 @@ const Header: React.FC<HeaderProps> = ({ isDarkMode, toggleTheme, onAiPrediction
 						onClick={onAiPredictionsClick}
 						className="text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors flex items-center gap-1"
 					>
-						AI Predictions <span className="text-cs px-1.5 py-0.5 rounded bg-indigo-100 dark:bg-indigo-900 text-indigo-600 dark:text-indigo-300">In development</span>
+						Run GPT-oss-20B
 					</button>
 				</nav>
 
