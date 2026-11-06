@@ -6,6 +6,54 @@
 // 	thermal_stability_score: number;
 // };
 
+declare type AiPredictionField =
+	| "metal_precursor"
+	| "organic_linker"
+	| "modulator"
+	| "solvent"
+	| "metal_concentration_mM"
+	| "M_L_ratio"
+	| "temperature_C"
+	| "time_h";
+
+// One full set of synthesis conditions (a "recipe") the model scores
+declare type SynthesisRecipe = {
+	metal_precursor: string;
+	organic_linker: string;
+	modulator: string;
+	solvent: string;
+	metal_concentration_mM: number;
+	M_L_ratio: number;
+	temperature_C: number;
+	time_h: number;
+};
+
+declare type SynthesisPrediction = {
+	recipe: SynthesisRecipe;
+	score: number;
+	pred: "P" | "N";
+	model: string;
+	latencyMs?: number;
+	cached?: boolean;
+};
+
+declare type AiPredictionTextField = "metal_precursor" | "organic_linker" | "modulator" | "solvent";
+
+declare type AiPredictionNumericField = "metal_concentration_mM" | "M_L_ratio" | "temperature_C" | "time_h";
+
+declare type AiPredictionNumericRanges = {
+	[K in AiPredictionNumericField]: { min: number; max: number; step: number };
+};
+
+declare type AiPredictionLiveStatus = "online" | "offline" | "busy";
+
+declare type AiPredictionStatus = {
+	live: AiPredictionLiveStatus;
+};
+
+// Why a live prediction failed, so the popup can show a matching message
+declare type AiPredictionErrorCode = "invalid" | "rate_limited" | "busy" | "offline" | "timeout" | "model_error";
+
 declare type CanonicalizeSmilesResult =
 	| {
 		ok: true;
