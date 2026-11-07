@@ -60,6 +60,50 @@ export const AI_PREDICTION_LIVE_MAX_RECIPES = 10;
 export const AI_PREDICTION_TEXT_MAX_LENGTH = 100;
 export const AI_PREDICTION_TEXT_FIELDS: AiPredictionTextField[] = ["metal_precursor", "organic_linker", "modulator", "solvent"];
 
+// Suggested values shown in the live prediction input dropdowns.
+// Edit these lists as needed; users can still type values that are not listed.
+export const AI_PREDICTION_TEXT_OPTIONS = {
+	metal_precursor: [
+		"Zn(NO3)2·6H2O",
+		"ZrOCl2·8H2O",
+		"Cu(NO3)2·3H2O",
+		"Co(NO3)2·6H2O",
+		"Cd(NO3)2·4H2O",
+		"Ni(NO3)2·6H2O",
+		"Al(NO3)3·9H2O",
+		"Sc(NO3)3·6H2O",
+		"FeCl3·6H2O",
+		"HfCl4",
+	],
+	organic_linker: [
+		"2-methylimidazole",
+		"terephthalic acid",
+		"benzene-1,3,5-tricarboxylic acid",
+		"2-aminoterephthalic acid",
+		"2,5-dihydroxyterephthalic acid",
+		"biphenyl-4,4'-dicarboxylic acid",
+		"2-chlorobenzene-1,4-dicarboxylic acid",
+		"2-fluorobenzene-1,4-dicarboxylic acid",
+		"2,5-thiophenedicarboxylic acid",
+		"fumaric acid",
+	],
+	modulator: [
+		"sodium hydroxide",
+		"acetic acid",
+		"formic acid",
+		"hydrochloric acid",
+		"benzoic acid",
+		"trifluoroacetic acid",
+	],
+	solvent: [
+		"N,N-dimethylformamide (DMF)",
+		"N,N-diethylformamide (DEF)",
+		"ethanol",
+		"methanol",
+		"water",
+	],
+} as Record<AiPredictionTextField, string[]>;
+
 // How the site and the model server spell "no modulator" (a blank modulator box means this)
 export const AI_PREDICTION_NO_MODULATOR = "none";
 

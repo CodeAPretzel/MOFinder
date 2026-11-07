@@ -489,3 +489,194 @@
 	width: 100%;
 	height: 16rem;
 }
+
+/* Live prediction text inputs with an integrated suggestions dropdown */
+.ai-prediction-field {
+	min-width: 0;
+}
+
+.ai-prediction-input-shell {
+	position: relative;
+	display: flex;
+	align-items: center;
+	width: 100%;
+	min-width: 0;	
+	border: 1px solid rgb(226 232 240);
+	border-radius: 0.625rem;
+	background-color: #ffffff;
+	transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+}
+
+.ai-prediction-input-shell:focus-within {
+	border-color: rgb(99 102 241);
+	box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.18);
+}
+
+.ai-prediction-input-shell.is-invalid {
+	border-color: rgb(251 113 133);
+}
+
+.ai-prediction-text-input {
+	flex: 1 1 auto;
+	width: 100%;
+	min-width: 0;
+	height: 2.625rem;
+	padding: 0.625rem 2.875rem 0.625rem 0.75rem;
+	border: 0;
+	border-radius: inherit;
+	outline: none;	
+	background: transparent;
+	color: rgb(15 23 42);
+	font: inherit;
+	font-size: 0.875rem;
+}
+
+.ai-prediction-text-input::placeholder {
+	color: rgb(148 163 184);
+	opacity: 1;
+}
+
+.ai-prediction-text-input:disabled {
+	cursor: not-allowed;
+	opacity: 0.6;
+}
+
+.ai-prediction-suggestion-trigger {
+	position: absolute;
+	right: 0.375rem;
+	top: 50%;
+	display: grid;
+	place-items: center;
+	width: 2rem;
+	height: 2rem;
+	padding: 0;
+	border: 0;
+	border-radius: 0.375rem;
+	background: transparent;
+	color: rgb(71 85 105);
+	cursor: pointer;
+	transform: translateY(-50%);
+	transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+/* A filled CSS triangle keeps the icon crisp without an extra image or dependency. */
+.ai-prediction-suggestion-trigger::before {
+	width: 0;
+	height: 0;
+	border-top: 0.42rem solid currentColor;
+	border-right: 0.34rem solid transparent;
+	border-left: 0.34rem solid transparent;
+	content: "";
+	transform: rotate(0deg);
+	transition: transform 0.18s ease;
+}
+
+.ai-prediction-suggestion-trigger[aria-expanded="true"]::before {
+	transform: rotate(180deg);
+}
+
+.ai-prediction-suggestion-trigger:hover:not(:disabled) {
+	background-color: rgb(241 245 249);
+	color: rgb(30 41 59);
+}
+
+.ai-prediction-suggestion-trigger:focus-visible {
+	outline: 2px solid rgb(99 102 241);
+	outline-offset: 1px;
+}
+
+.ai-prediction-suggestion-trigger:disabled {
+	cursor: not-allowed;
+	opacity: 0.35;
+}
+
+.ai-prediction-suggestion-menu {
+	position: absolute;
+	top: calc(100% + 0.375rem);
+	right: 0;
+	left: 0;
+	z-index: 40;
+	max-height: 14rem;
+	overflow-y: auto;
+	padding: 0.25rem;
+	border: 1px solid rgb(226 232 240);
+	border-radius: 0.625rem;
+	background: #ffffff;
+	box-shadow: 0 10px 24px rgba(15, 23, 42, 0.14), 0 2px 6px rgba(15, 23, 42, 0.08);
+}
+
+.ai-prediction-suggestion-option {
+	display: block;
+	width: 100%;
+	padding: 0.55rem 0.7rem;
+	border: 0;
+	border-radius: 0.375rem;
+	background: transparent;
+	color: rgb(51 65 85);
+	font-size: 0.875rem;
+	line-height: 1.35;
+	text-align: left;	
+	cursor: pointer;	
+	transition: background-color 0.12s ease, color 0.12s ease;
+}
+
+.ai-prediction-suggestion-option:hover,
+.ai-prediction-suggestion-option:focus-visible {
+	outline: none;
+	background: rgb(238 242 255);
+	color: rgb(55 48 163);
+}
+
+.ai-prediction-suggestion-option[aria-checked="true"] {
+	background: rgb(238 242 255);
+	color: rgb(55 48 163);
+	font-weight: 600;
+}
+
+.dark .ai-prediction-input-shell {
+	border-color: rgb(51 65 85);
+	background-color: rgb(30 41 59);
+}
+
+.dark .ai-prediction-input-shell:focus-within {
+	border-color: rgb(129 140 248);
+	box-shadow: 0 0 0 2px rgba(129, 140, 248, 0.2);
+}
+
+.dark .ai-prediction-input-shell.is-invalid {
+	border-color: rgb(244 63 94);
+}
+
+.dark .ai-prediction-text-input {
+	color: rgb(226 232 240);
+}
+
+.dark .ai-prediction-text-input::placeholder {
+	color: rgb(148 163 184);
+}
+
+.dark .ai-prediction-suggestion-trigger {
+	color: rgb(203 213 225);
+}
+
+.dark .ai-prediction-suggestion-trigger:hover:not(:disabled) {
+	background-color: rgb(51 65 85);
+	color: rgb(241 245 249);
+}
+
+.dark .ai-prediction-suggestion-menu {
+	border-color: rgb(51 65 85);
+	background: rgb(15 23 42);
+	box-shadow: 0 10px 24px rgba(0, 0, 0, 0.35), 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+.dark .ai-prediction-suggestion-option {
+	color: rgb(203 213 225);
+}
+
+.dark .ai-prediction-suggestion-option:hover,
+.dark .ai-prediction-suggestion-option:focus-visible,
+.dark .ai-prediction-suggestion-option[aria-checked="true"] {
+	background: rgba(99, 102, 241, 0.2);
+	color: rgb(199 210 254);
+}

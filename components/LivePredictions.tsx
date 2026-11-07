@@ -8,6 +8,7 @@ import {
 	AI_PREDICTION_LIVE_MAX_RECIPES,
 	AI_PREDICTION_NUMERIC_RANGES,
 	AI_PREDICTION_TEXT_MAX_LENGTH,
+	AI_PREDICTION_TEXT_OPTIONS,
 } from '@/constants';
 import { fetchLivePrediction, fetchPredictionStatus } from '@/app/api/ai-prediction/handler';
 import { checkNumericValue, checkTextValue, formatPredictionValue, isNumericField, isTextField } from '@/lib/prediction';
@@ -97,6 +98,7 @@ const LivePredictions: React.FC = () => {
 	const nextIdRef = useRef(2);
 	// A name box shows its message once it has been typed in, or after a submit
 	const [touched, setTouched] = useState<Set<string>>(() => new Set());
+	const [openSuggestionKey, setOpenSuggestionKey] = useState<string | null>(null);
 
 	const [liveStatus, setLiveStatus] = useState<AiPredictionLiveStatus | null>(null);
 	const [isRunning, setIsRunning] = useState(false);
@@ -106,6 +108,27 @@ const LivePredictions: React.FC = () => {
 	const abortRef = useRef<AbortController | null>(null);
 
 	useEffect(() => { cardsRef.current = cards; }, [cards]);
+
+	// Close an open suggestions menu when the user clicks anywhere outside its field.
+	useEffect(() => {
+		if (openSuggestionKey == null) return;
+
+		const closeOnOutsidePointer = (event: PointerEvent) => {
+			const target = event.target;
+			if (!(target instanceof Element)) {
+				setOpenSuggestionKey(null);
+				return;
+			}
+
+			const field = target.closest<HTMLElement>('[data-ai-prediction-suggestion]');
+			if (field?.dataset.aiPredictionSuggestion !== openSuggestionKey) {
+				setOpenSuggestionKey(null);
+			}
+		};
+
+		document.addEventListener('pointerdown', closeOnOutsidePointer);
+		return () => document.removeEventListener('pointerdown', closeOnOutsidePointer);
+	}, [openSuggestionKey]);
 
 	// Status dot, refreshed while the panel is open
 	useEffect(() => {
@@ -249,33 +272,90 @@ const LivePredictions: React.FC = () => {
 	const nothingToDo = toRun === 0 && checked.every(({ recipe }) => recipe != null);
 	const statusDot = liveStatus ? STATUS_DOT[liveStatus] : null;
 
-	// Typed name: any metal precursor, linker, modulator or solvent
+	// Typed name with an in-field suggestions menu for each text condition.
 	const renderTextInput = (card: RecipeCard, textChecks: ReturnType<typeof checkCard>['textChecks'], { key, label }: (typeof AI_PREDICTION_FIELDS)[number], index: number) => {
 		const textKey = key as AiPredictionTextField;
 		const error = touched.has(`${card.id}:${key}`) ? textChecks[index].error : null;
 		const hintId = `ai-pred-${card.id}-${key}-hint`;
+		const inputId = `ai-pred-${card.id}-${key}-input`;
+		const menuId = `ai-pred-${card.id}-${key}-suggestions`;
+		const suggestionKey = `${card.id}:${textKey}`;
+		const options = AI_PREDICTION_TEXT_OPTIONS[textKey];
+		const suggestionsOpen = openSuggestionKey === suggestionKey;
 
 		return (
-			<label key={key} className="block">
-				<span className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">{label}</span>
-				<input
-					type="text"
-					value={card.texts[textKey]}
-					onChange={(e) => {
-						setText(card.id, textKey, e.target.value);
-						touch(card.id, key);
+			<div key={key} className="block ai-prediction-field">
+				<label htmlFor={inputId} className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">{label}</label>
+				<div
+					className={`ai-prediction-input-shell ${error ? 'is-invalid' : ''}`}
+					data-ai-prediction-suggestion={suggestionKey}
+					onBlur={(event) => {
+						const nextTarget = event.relatedTarget;
+						if (!(nextTarget instanceof Node) || !event.currentTarget.contains(nextTarget)) {
+							setOpenSuggestionKey(current => current === suggestionKey ? null : current);
+						}
 					}}
-					placeholder={TEXT_PLACEHOLDERS[textKey]}
-					maxLength={AI_PREDICTION_TEXT_MAX_LENGTH + 20}
-					autoComplete="off"
-					spellCheck={false}
-					disabled={isRunning}
-					aria-invalid={error != null}
-					aria-describedby={error ? hintId : undefined}
-					className={`${INPUT_CLASS} ${error ? 'border-rose-400 dark:border-rose-500' : 'border-slate-200 dark:border-slate-700'}`}
-				/>
+				>
+					<input
+						id={inputId}
+						type="text"
+						value={card.texts[textKey]}
+						onChange={(e) => {
+							setText(card.id, textKey, e.target.value);
+							touch(card.id, key);
+						}}
+						onKeyDown={(e) => {
+							if (e.key === 'ArrowDown' && options.length > 0) {
+								e.preventDefault();
+								setOpenSuggestionKey(suggestionKey);
+							} else if (e.key === 'Escape' && suggestionsOpen) {
+								e.preventDefault();
+								setOpenSuggestionKey(null);
+							}
+						}}
+						placeholder={TEXT_PLACEHOLDERS[textKey]}
+						maxLength={AI_PREDICTION_TEXT_MAX_LENGTH + 20}
+						autoComplete="off"
+						spellCheck={false}
+						disabled={isRunning}
+						aria-invalid={error != null}
+						aria-describedby={error ? hintId : undefined}
+						className="ai-prediction-text-input"
+					/>
+					<button
+						type="button"
+						className="ai-prediction-suggestion-trigger"
+						aria-label={`${suggestionsOpen ? 'Hide' : 'Show'} suggested ${label.toLowerCase()} values`}
+						aria-haspopup="menu"
+						aria-expanded={suggestionsOpen}
+						aria-controls={suggestionsOpen ? menuId : undefined}
+						title={`Choose a suggested ${label.toLowerCase()}`}
+						disabled={isRunning || options.length === 0}
+						onClick={() => setOpenSuggestionKey(current => current === suggestionKey ? null : suggestionKey)}
+					/>
+					{suggestionsOpen && options.length > 0 && (
+						<div id={menuId} className="ai-prediction-suggestion-menu" role="menu" aria-label={`Suggested ${label.toLowerCase()} values`}>
+							{options.map((option) => (
+								<button
+									type="button"
+									key={option}
+									role="menuitemradio"
+									aria-checked={card.texts[textKey] === option}
+									className="ai-prediction-suggestion-option"
+									onClick={() => {
+										setText(card.id, textKey, option);
+										touch(card.id, key);
+										setOpenSuggestionKey(null);
+									}}
+								>
+									{option}
+								</button>
+							))}
+						</div>
+					)}
+				</div>
 				{error && <span id={hintId} className="block mt-1 text-xs text-rose-600 dark:text-rose-400">{error}</span>}
-			</label>
+			</div>
 		);
 	};
 
