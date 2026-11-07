@@ -96,8 +96,8 @@ export const AI_PREDICTION_TEXT_OPTIONS = {
 		"trifluoroacetic acid",
 	],
 	solvent: [
-		"N,N-dimethylformamide (DMF)",
-		"N,N-diethylformamide (DEF)",
+		"dimethylformamide",
+		"diethylformamide",
 		"ethanol",
 		"methanol",
 		"water",
